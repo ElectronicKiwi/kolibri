@@ -50,7 +50,7 @@ use embedded_graphics::mono_font::MonoFont;
 use embedded_graphics::mono_font::MonoTextStyle;
 use embedded_graphics::pixelcolor::{PixelColor};
 use embedded_graphics::prelude::*;
-use embedded_graphics::text::{Baseline, Text};
+use embedded_graphics::text::{Baseline, DecorationColor, Text};
 use foldhash::fast::RandomState;
 
 /// A widget for displaying text in the UI.
@@ -98,6 +98,8 @@ pub struct Label<'a, COL: PixelColor> {
     smartstate: Container<'a, Smartstate>,
     text_color: Option<COL>,
     text_background_color: Option<COL>,
+    underline: DecorationColor<COL>,
+    strikethrough: DecorationColor<COL>,
 }
 
 impl<'a, COL: PixelColor> Label<'a, COL> {
@@ -132,6 +134,8 @@ impl<'a, COL: PixelColor> Label<'a, COL> {
             smartstate: Container::empty(),
             text_color: None,
             text_background_color: None,
+            underline: DecorationColor::None,
+            strikethrough: DecorationColor::None,
         }
     }
 
@@ -225,6 +229,71 @@ impl<'a, COL: PixelColor> Label<'a, COL> {
         self
     }
 
+        /// Sets underline for the label using DecorationColor
+    /// DecorationColor::None - no underline drawn
+    /// DecorationColor::TextColor - underline drawn in same color as text label
+    /// DecorationColor::Custom(COL:PixelColor) - underline drawin in given color
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use embedded_graphics::pixelcolor::Rgb565;
+    /// # use embedded_graphics_simulator::{SimulatorDisplay, OutputSettingsBuilder, Window};
+    /// # use kolibri_embedded_gui::style::medsize_rgb565_style;
+    /// # use kolibri_embedded_gui::ui::Ui;
+    /// # use embedded_graphics::prelude::*;
+    /// # use embedded_graphics::primitives::Rectangle;
+    /// # use embedded_iconoir::prelude::*;
+    /// # use embedded_iconoir::size12px;
+    /// # use kolibri_embedded_gui::ui::*;
+    /// # use embedded_graphics::mono_font::ascii;
+    /// # use kolibri_embedded_gui::label::*;
+    /// # use kolibri_embedded_gui::smartstate::*;
+    /// # let mut display = SimulatorDisplay::<Rgb565>::new(Size::new(320, 240));
+    /// # let output_settings = OutputSettingsBuilder::new().build();
+    /// # let mut window = Window::new("Kolibri Example", &output_settings);
+    /// # use kolibri_embedded_gui::label::*;
+    /// # let hasher = Hasher::new();
+    /// # let mut ui = Ui::new_fullscreen(&mut display, medsize_rgb565_style());
+    /// ui.add(Label::new("Custom Text Color").with_underline(DecorationColor::Custom(Rgb565::CSS_BLUE));
+    /// ```
+    pub fn with_underline(mut self, decoration: DecorationColor<COL>) -> Self {
+        self.underline = decoration;
+        self
+    }
+
+    /// Sets strikethrough for the label using DecorationColor
+    /// DecorationColor::None - no strikethrough drawn
+    /// DecorationColor::TextColor - strikethrough drawn in same color as text label
+    /// DecorationColor::Custom(COL:PixelColor) - strikethrough drawin in given color
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use embedded_graphics::pixelcolor::Rgb565;
+    /// # use embedded_graphics_simulator::{SimulatorDisplay, OutputSettingsBuilder, Window};
+    /// # use kolibri_embedded_gui::style::medsize_rgb565_style;
+    /// # use kolibri_embedded_gui::ui::Ui;
+    /// # use embedded_graphics::prelude::*;
+    /// # use embedded_graphics::primitives::Rectangle;
+    /// # use embedded_iconoir::prelude::*;
+    /// # use embedded_iconoir::size12px;
+    /// # use kolibri_embedded_gui::ui::*;
+    /// # use embedded_graphics::mono_font::ascii;
+    /// # use kolibri_embedded_gui::label::*;
+    /// # use kolibri_embedded_gui::smartstate::*;
+    /// # let mut display = SimulatorDisplay::<Rgb565>::new(Size::new(320, 240));
+    /// # let output_settings = OutputSettingsBuilder::new().build();
+    /// # let mut window = Window::new("Kolibri Example", &output_settings);
+    /// # use kolibri_embedded_gui::label::*;
+    /// # let hasher = Hasher::new();
+    /// # let mut ui = Ui::new_fullscreen(&mut display, medsize_rgb565_style());
+    /// ui.add(Label::new("Custom Text Color").with_strikethrough(DecorationColor::Custom(Rgb565::CSS_BLUE));
+    /// ```
+    pub fn with_strikethrough(mut self, decoration: DecorationColor<COL>) -> Self {
+        self.strikethrough = decoration;
+        self
+    }
 
     /// Adds a [Smartstate] to the label for incremental redrawing.
     ///
@@ -279,6 +348,9 @@ impl<COL: PixelColor> Widget<COL> for Label<'_, COL> {
                 &font,
                 self.text_color.unwrap_or_else(|| ui.style().text_color),
         );
+        char_style.underline_color = self.underline;
+        char_style.strikethrough_color = self.strikethrough;
+
         if self.text_background_color.is_some() {
             char_style.background_color = self.text_background_color;
         }
@@ -403,6 +475,8 @@ pub struct HashLabel<'a, COL: PixelColor> {
     hasher: &'a Hasher,
     text_color: Option<COL>,
     text_background_color: Option<COL>,
+    underline: DecorationColor<COL>,
+    strikethrough: DecorationColor<COL>,
 }
 
 impl<'a, COL: PixelColor> HashLabel<'a, COL> {
@@ -447,6 +521,8 @@ impl<'a, COL: PixelColor> HashLabel<'a, COL> {
             hasher,
             text_color: None,
             text_background_color: None,
+            underline: DecorationColor::None,
+            strikethrough: DecorationColor::None,
         }
     }
 
@@ -543,6 +619,72 @@ impl<'a, COL: PixelColor> HashLabel<'a, COL> {
         self
     }    
 
+    /// Sets underline for the label using DecorationColor
+    /// DecorationColor::None - no underline drawn
+    /// DecorationColor::TextColor - underline drawn in same color as text label
+    /// DecorationColor::Custom(COL:PixelColor) - underline drawin in given color
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use embedded_graphics::pixelcolor::Rgb565;
+    /// # use embedded_graphics_simulator::{SimulatorDisplay, OutputSettingsBuilder, Window};
+    /// # use kolibri_embedded_gui::style::medsize_rgb565_style;
+    /// # use kolibri_embedded_gui::ui::Ui;
+    /// # use embedded_graphics::prelude::*;
+    /// # use embedded_graphics::primitives::Rectangle;
+    /// # use embedded_iconoir::prelude::*;
+    /// # use embedded_iconoir::size12px;
+    /// # use kolibri_embedded_gui::ui::*;
+    /// # use embedded_graphics::mono_font::ascii;
+    /// # use kolibri_embedded_gui::label::*;
+    /// # use kolibri_embedded_gui::smartstate::*;
+    /// # let mut display = SimulatorDisplay::<Rgb565>::new(Size::new(320, 240));
+    /// # let output_settings = OutputSettingsBuilder::new().build();
+    /// # let mut window = Window::new("Kolibri Example", &output_settings);
+    /// # use kolibri_embedded_gui::label::*;
+    /// # let hasher = Hasher::new();
+    /// # let mut ui = Ui::new_fullscreen(&mut display, medsize_rgb565_style());
+    /// ui.add(Label::new("Custom Text Color").with_underline(DecorationColor::Custom(Rgb565::CSS_BLUE));
+    /// ```
+    pub fn with_underline(mut self, decoration: DecorationColor<COL>) -> Self {
+        self.underline = decoration;
+        self
+    }
+
+    /// Sets strikethrough for the label using DecorationColor
+    /// DecorationColor::None - no strikethrough drawn
+    /// DecorationColor::TextColor - strikethrough drawn in same color as text label
+    /// DecorationColor::Custom(COL:PixelColor) - strikethrough drawin in given color
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use embedded_graphics::pixelcolor::Rgb565;
+    /// # use embedded_graphics_simulator::{SimulatorDisplay, OutputSettingsBuilder, Window};
+    /// # use kolibri_embedded_gui::style::medsize_rgb565_style;
+    /// # use kolibri_embedded_gui::ui::Ui;
+    /// # use embedded_graphics::prelude::*;
+    /// # use embedded_graphics::primitives::Rectangle;
+    /// # use embedded_iconoir::prelude::*;
+    /// # use embedded_iconoir::size12px;
+    /// # use kolibri_embedded_gui::ui::*;
+    /// # use embedded_graphics::mono_font::ascii;
+    /// # use kolibri_embedded_gui::label::*;
+    /// # use kolibri_embedded_gui::smartstate::*;
+    /// # let mut display = SimulatorDisplay::<Rgb565>::new(Size::new(320, 240));
+    /// # let output_settings = OutputSettingsBuilder::new().build();
+    /// # let mut window = Window::new("Kolibri Example", &output_settings);
+    /// # use kolibri_embedded_gui::label::*;
+    /// # let hasher = Hasher::new();
+    /// # let mut ui = Ui::new_fullscreen(&mut display, medsize_rgb565_style());
+    /// ui.add(Label::new("Custom Text Color").with_strikethrough(DecorationColor::Custom(Rgb565::CSS_BLUE));
+    /// ```
+    pub fn with_strikethrough(mut self, decoration: DecorationColor<COL>) -> Self {
+        self.strikethrough = decoration;
+        self
+    }
+
 }
 impl<COL: PixelColor> Widget<COL> for HashLabel<'_, COL> {
     fn draw<DRAW: DrawTarget<Color = COL>>(
@@ -561,6 +703,9 @@ impl<COL: PixelColor> Widget<COL> for HashLabel<'_, COL> {
                 &font,
                 self.text_color.unwrap_or_else(|| ui.style().text_color),
         );
+        char_style.underline_color = self.underline;
+        char_style.strikethrough_color = self.strikethrough;
+
         if self.text_background_color.is_some() {
             char_style.background_color = self.text_background_color;
         }

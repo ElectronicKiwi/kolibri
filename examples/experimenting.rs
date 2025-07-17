@@ -2,6 +2,7 @@ use embedded_graphics::geometry::Size;
 use embedded_graphics::mono_font::ascii;
 use embedded_graphics::pixelcolor::Rgb565;
 use embedded_graphics::prelude::{Point, WebColors};
+use embedded_graphics::text::DecorationColor;
 use embedded_graphics_simulator::sdl2::MouseButton;
 use embedded_graphics_simulator::{
     OutputSettingsBuilder, SimulatorDisplay, SimulatorEvent, Window,
@@ -73,13 +74,16 @@ fn main() -> Result<(), core::convert::Infallible> {
         ui.add_horizontal(
             Label::new("Experimenting")
                 .with_font(ascii::FONT_10X20)
-                .with_color(Rgb565::CSS_BLUE_VIOLET),
+                .with_color(Rgb565::CSS_BLUE_VIOLET)
+                .with_underline(DecorationColor::Custom(Rgb565::CSS_BLACK)),
         );
         ui.add(
             Label::new("Example")
                 .with_font(ascii::FONT_10X20)
                 .with_color(Rgb565::CSS_BLUE_VIOLET)
-                .with_background_color(Rgb565::CSS_YELLOW),
+                .with_background_color(Rgb565::CSS_YELLOW)
+                .with_strikethrough(DecorationColor::TextColor)
+                ,
         );
 
         if ui
