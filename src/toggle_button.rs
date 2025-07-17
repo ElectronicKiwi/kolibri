@@ -18,7 +18,7 @@ use embedded_graphics::mono_font::MonoTextStyle;
 use embedded_graphics::pixelcolor::PixelColor;
 use embedded_graphics::prelude::*;
 use embedded_graphics::primitives::{PrimitiveStyleBuilder, Rectangle};
-use embedded_graphics::text::{Baseline, Text};
+use embedded_graphics::text::{Alignment, Baseline, Text};
 
 /// A button widget that can be toggled on and off.
 ///
@@ -55,6 +55,7 @@ pub struct ToggleButton<'a> {
     label: &'a str,
     active: &'a mut bool,
     smartstate: Container<'a, Smartstate>,
+    min_width : u32,
 }
 
 impl<'a> ToggleButton<'a> {
@@ -101,6 +102,7 @@ impl<'a> ToggleButton<'a> {
             label,
             active,
             smartstate: Container::empty(),
+            min_width : 0u32,
         }
     }
 
@@ -112,6 +114,17 @@ impl<'a> ToggleButton<'a> {
     /// Returns self for method chaining.
     pub fn smartstate(mut self, smartstate: &'a mut Smartstate) -> Self {
         self.smartstate.set(smartstate);
+        self
+    }
+    /// Specifies minimum width to override automatic width to fit contents. 
+    ///
+    /// # Arguments
+    /// * `width` - The minimum width.  0 will result in automatic sizing
+    ///
+    /// # Returns
+    /// Self with minimum width configured
+    pub fn expand_width(mut self, width: u32) -> Self {
+        self.min_width = width;
         self
     }
 }
@@ -136,7 +149,10 @@ impl<COL: PixelColor> Widget<COL> for ToggleButton<'_> {
         let height = ui.style().default_widget_height;
 
         let size = Size::new(
-            text_bounds.size.width + 2 * padding.width + 2 * border,
+            max(
+                text_bounds.size.width + 2 * padding.width + 2 * border, 
+                self.min_width
+            ),
             max(
                 text_bounds.size.height + 2 * padding.height + 2 * border,
                 height,
@@ -150,11 +166,12 @@ impl<COL: PixelColor> Widget<COL> for ToggleButton<'_> {
         text.translate_mut(
             iresponse.area.top_left
                 + Point::new(
-                    (padding.width + border) as i32,
-                    (padding.height + border) as i32,
+                (iresponse.area.size.width /2) as i32, 
+                (iresponse.area.size.height/2) as i32,
                 ),
         );
-        text.text_style.baseline = Baseline::Top;
+        text.text_style.alignment = Alignment::Center;
+        text.text_style.baseline = Baseline::Middle;
 
         // Handle interaction
         let mut changed = false;

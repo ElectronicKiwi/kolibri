@@ -105,11 +105,13 @@ fn main() -> Result<(), core::convert::Infallible> {
         ui.clear_row_to_end().unwrap();
         ui.new_row();
 
-        ui.expand_row_height(20);
-        ui.add_horizontal(Button::new("Another button!").smartstate(smartstates.nxt()));
+        ui.expand_row_height(40);
+        ui.add_horizontal(Button::new("Another button!")
+            .expand_width(250)
+            .smartstate(smartstates.nxt()));
         ui.add(IconWidget::<size24px::layout::CornerBottomLeft, Rgb565>::new_from_type().with_color(Rgb565::CSS_DARK_RED).with_background_color(Rgb565::CSS_DARK_GRAY));
         // ui.add(IconButton::new(size24px::actions::AddCircle));
-        ui.add_horizontal(IconButton::new(size24px::actions::AddCircle).label("Add 2"));
+        ui.add_horizontal(IconButton::new(size24px::actions::AddCircle).label("Add 2").expand_width(100));
         ui.add_horizontal(IconButton::new(size24px::actions::AddCircle).label("Add 2"));
         ui.add_horizontal(IconButton::new(size24px::actions::AddCircle).label("Add 2"));
         ui.new_row();
@@ -125,7 +127,9 @@ fn main() -> Result<(), core::convert::Infallible> {
             println!("Slider value: {}", slider_val);
         }
 
-        ui.add_horizontal(ToggleButton::new("Something", &mut state).smartstate(smartstates.nxt()));
+        ui.add_horizontal(ToggleButton::new("Something", &mut state)
+            .expand_width(200)
+            .smartstate(smartstates.nxt()));
         ui.add(ToggleSwitch::new(&mut state).smartstate(smartstates.nxt()));
 
         /*

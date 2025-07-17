@@ -11,6 +11,7 @@
 //! - Visual feedback via color changes for different interaction states
 //! - Integration with Kolibri's theming system
 //! - Support for the smartstate system for efficient redrawing
+//! - option to specify minimum width
 //!
 //! ## Usage
 //!
@@ -81,6 +82,7 @@ pub struct IconButton<'a, ICON: IconoirIcon> {
     icon: PhantomData<ICON>,
     label: Option<&'a str>,
     smartstate: Container<'a, Smartstate>,
+    min_width : u32,
 }
 
 impl<'a, ICON: IconoirIcon> IconButton<'a, ICON> {
@@ -119,6 +121,7 @@ impl<'a, ICON: IconoirIcon> IconButton<'a, ICON> {
             icon: PhantomData,
             smartstate: Container::empty(),
             label: None,
+            min_width : 0u32,
         }
     }
 
@@ -185,6 +188,7 @@ impl<'a, ICON: IconoirIcon> IconButton<'a, ICON> {
             icon: PhantomData,
             smartstate: Container::empty(),
             label: None,
+            min_width: 0_u32,
         }
     }
 
@@ -221,13 +225,25 @@ impl<'a, ICON: IconoirIcon> IconButton<'a, ICON> {
         self.smartstate.set(smartstate);
         self
     }
+
+    /// Specifies minimum width to override automatic width to fit contents. 
+    ///
+    /// # Arguments
+    /// * `width` - The minimum width.  0 will result in automatic sizing
+    ///
+    /// # Returns
+    /// Self with minimum width configured
+    pub fn expand_width(mut self, width: u32) -> Self {
+        self.min_width = width;
+        self
+    }
 }
 
 impl<COL: PixelColor, ICON: IconoirIcon> Widget<COL> for IconButton<'_, ICON> {
     /// Draws the icon button within the UI.
     ///
     /// This method:
-    /// 1. Calculates the size based on icon and optional label
+    /// 1. Calculates the size based on icon and optional label, increasing width to match minimum if necessary
     /// 2. Allocates space for the widget
     /// 3. Positions the icon and optional label
     /// 4. Detects interactions (hover, click, press)
@@ -268,6 +284,10 @@ impl<COL: PixelColor, ICON: IconoirIcon> Widget<COL> for IconButton<'_, ICON> {
             max(ui.style().default_widget_height, ui.get_row_height()),
             min_height,
         );
+
+        if width < self.min_width {
+            width = self.min_width;
+        }
 
         let size = Size::new(width, height);
 

@@ -12,7 +12,7 @@ use embedded_graphics::mono_font::MonoTextStyle;
 use embedded_graphics::pixelcolor::PixelColor;
 use embedded_graphics::prelude::*;
 use embedded_graphics::primitives::{PrimitiveStyleBuilder, Rectangle};
-use embedded_graphics::text::{Baseline, Text};
+use embedded_graphics::text::{Alignment, Baseline, Text};
 
 /// # Button Widget
 ///
@@ -27,6 +27,7 @@ use embedded_graphics::text::{Baseline, Text};
 /// - Visual feedback for different interaction states (normal, hover, pressed)
 /// - Optional smartstate support for incremental redrawing
 /// - Automatic sizing based on text content and style settings
+/// - ability to override automatic sizing using .expand_width() to complement ui.expand_row_height()
 ///
 /// # Example
 /// ```no_run
@@ -79,6 +80,7 @@ use embedded_graphics::text::{Baseline, Text};
 pub struct Button<'a> {
     label: &'a str,
     smartstate: Container<'a, Smartstate>,
+    min_width : u32,
 }
 
 impl<'a> Button<'a> {
@@ -93,6 +95,7 @@ impl<'a> Button<'a> {
         Button {
             label,
             smartstate: Container::empty(),
+            min_width: 0_u32,
         }
     }
 
@@ -110,6 +113,19 @@ impl<'a> Button<'a> {
         self.smartstate.set(smartstate);
         self
     }
+
+    /// Specifies minimum width to override automatic width to fit contents. 
+    ///
+    /// # Arguments
+    /// * `width` - The minimum width.  0 will result in automatic sizing
+    ///
+    /// # Returns
+    /// Self with minimum width configured
+    pub fn expand_width(mut self, width: u32) -> Self {
+        self.min_width = width;
+        self
+    }
+
 }
 
 impl<COL: PixelColor> Widget<COL> for Button<'_> {
@@ -131,19 +147,26 @@ impl<COL: PixelColor> Widget<COL> for Button<'_> {
         let padding = ui.style().spacing.button_padding;
         let border = ui.style().border_width;
 
-        // allocate space
-        let iresponse = ui.allocate_space(Size::new(
+        // calculate minumum dimensions to contain contents
+        let mut desired_size = Size::new(
             size.size.width + 2 * padding.width + 2 * border,
             max(size.size.height + 2 * padding.height + 2 * border, height),
-        ))?;
+        );
+        if self.min_width > desired_size.width {
+            desired_size.width = self.min_width;
+        }
 
-        // move text
+        // allocate space
+        let iresponse = ui.allocate_space(desired_size)?;
+
+        // center text horizontally and vertically
         text.translate_mut(iresponse.area.top_left.add(Point::new(
-            (padding.width + border) as i32,
-            (padding.height + border) as i32,
+            (iresponse.area.size.width /2) as i32, 
+            (iresponse.area.size.height/2) as i32,
         )));
-
-        text.text_style.baseline = Baseline::Top;
+        
+        text.text_style.alignment = Alignment::Center;
+        text.text_style.baseline = Baseline::Middle;
 
         // check for click
         let click = matches!(iresponse.interaction, Interaction::Release(_));
