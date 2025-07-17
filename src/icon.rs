@@ -59,25 +59,29 @@ use embedded_graphics::geometry::Point;
 use embedded_graphics::image::Image;
 use embedded_graphics::pixelcolor::PixelColor;
 use embedded_graphics::prelude::*;
+use embedded_graphics::primitives::{PrimitiveStyle, PrimitiveStyleBuilder, Rectangle};
+use embedded_graphics::text::DecorationColor;
 use embedded_iconoir::prelude::*;
 
 /// A widget for displaying an Iconoir icon.
 ///
 /// This widget renders icons from the Iconoir library using the [embedded_iconoir], applying
-/// colors from the current style system.
+/// colors from the current style system, or from the .with_color() or .with_background_color() functions
 ///
 /// You can choose an icon from all resolutions of [embedded_iconoir], such as [embedded_iconoir::size12px] up to [embedded_iconoir::size144px].
 /// For all icons, see [embedded_iconoir::size12px]
-pub struct IconWidget<'a, Ico: IconoirIcon> {
+pub struct IconWidget<'a, Ico: IconoirIcon, COL: PixelColor> {
     marker: PhantomData<Ico>,
     smartstate: Container<'a, Smartstate>,
+    icon_color: Option<COL>,    
+    background_color: Option<COL>,    
 }
 
-impl<'a, Ico: IconoirIcon> IconWidget<'a, Ico> {
+impl<'a, Ico: IconoirIcon, COL: PixelColor> IconWidget<'a, Ico, COL> {
     /// Creates a new [IconWidget] from an [IconoirIcon] instance.
     ///
     /// The icon color from the icon instance will be ignored, as the widget
-    /// will use the icon color from the current UI style.
+    /// will use the icon color from the current UI style, or the color supplied in .with_color()
     ///
     /// You can choose an icon from all resolutions of [embedded_iconoir], such as [embedded_iconoir::size12px] up to [embedded_iconoir::size144px].
     /// For all icons, see [embedded_iconoir::size12px]
@@ -85,6 +89,8 @@ impl<'a, Ico: IconoirIcon> IconWidget<'a, Ico> {
         Self {
             marker: PhantomData,
             smartstate: Container::empty(),
+            icon_color: None,
+            background_color: None,
         }
     }
 
@@ -96,6 +102,8 @@ impl<'a, Ico: IconoirIcon> IconWidget<'a, Ico> {
         Self {
             marker: PhantomData,
             smartstate: Container::empty(),
+            icon_color : None,
+            background_color: None,
         }
     }
 
@@ -109,13 +117,27 @@ impl<'a, Ico: IconoirIcon> IconWidget<'a, Ico> {
         self.smartstate.set(smartstate);
         self
     }
+
+    /// Specifies a custom icon color
+    pub fn with_color(mut self, col: COL) -> Self {
+        self.icon_color = Some(col);
+        self
+    }
+
+    /// Specifies a custom background color
+    pub fn with_background_color(mut self, col: COL) -> Self {
+        self.background_color = Some(col);
+        self
+    }
+
+
 }
 
-impl<COL: PixelColor, Ico: IconoirIcon> Widget<COL> for IconWidget<'_, Ico> {
+impl<COL: PixelColor, Ico: IconoirIcon> Widget<COL> for IconWidget<'_, Ico, COL> {
     /// Draws the icon within the UI.
     ///
     /// This method:
-    /// 1. Creates an icon with the current style's icon color
+    /// 1. Creates an icon with the current style's icon color, or colors from .with_color and with_background_color
     /// 2. Allocates space based on the icon's size
     /// 3. Updates the smartstate
     /// 4. Draws the icon if necessary (when smartstate changes or is forced to redraw)
@@ -125,7 +147,9 @@ impl<COL: PixelColor, Ico: IconoirIcon> Widget<COL> for IconWidget<'_, Ico> {
         ui: &mut Ui<DRAW, COL>,
     ) -> GuiResult<Response> {
         // find size && allocate space
-        let icon = Ico::new(ui.style().icon_color);
+        let icon = Ico::new(
+            self.icon_color.unwrap_or_else(|| ui.style().icon_color)
+        );
         let iresponse = ui.allocate_space(icon.size())?;
 
         let prevstate = self.smartstate.clone_inner();
@@ -147,6 +171,14 @@ impl<COL: PixelColor, Ico: IconoirIcon> Widget<COL> for IconWidget<'_, Ico> {
                     (iresponse.area.size.height - icon.size().height) as i32 / 2,
                 )),
             );
+            // draw background if color is specified
+            if self.background_color.is_some() {
+                let bg_style = PrimitiveStyle::<COL>::with_fill(self.background_color.unwrap());
+                let bg = Rectangle::new(iresponse.area.top_left, iresponse.area.size)
+                    .into_styled(bg_style);
+                ui.draw(&bg).map_err(|_| GuiError::DrawError(Some("Couldn't draw Icon background")))?;
+            }
+
             ui.draw(&img)
                 .map_err(|_| GuiError::DrawError(Some("Couldn't draw Icon")))?;
 
