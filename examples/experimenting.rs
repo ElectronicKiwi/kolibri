@@ -106,7 +106,7 @@ fn main() -> Result<(), core::convert::Infallible> {
         ui.new_row();
 
         ui.expand_row_height(40);
-        ui.add_horizontal(Button::new("Another button!")
+        ui.add_horizontal(Button::new("Expanded button!")
             .expand_width(250)
             .smartstate(smartstates.nxt()));
         ui.add(IconWidget::<size24px::layout::CornerBottomLeft, Rgb565>::new_from_type().with_color(Rgb565::CSS_DARK_RED).with_background_color(Rgb565::CSS_DARK_GRAY));

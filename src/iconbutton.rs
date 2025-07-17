@@ -69,7 +69,7 @@ use embedded_graphics::image::Image;
 use embedded_graphics::mono_font::MonoTextStyle;
 use embedded_graphics::pixelcolor::PixelColor;
 use embedded_graphics::prelude::*;
-use embedded_graphics::primitives::{PrimitiveStyleBuilder, Rectangle};
+use embedded_graphics::primitives::{PrimitiveStyleBuilder, Rectangle, RoundedRectangle};
 use embedded_graphics::text::{Alignment, Baseline, Text};
 use embedded_iconoir::prelude::{IconoirIcon, IconoirNewIcon};
 
@@ -377,8 +377,11 @@ impl<COL: PixelColor, ICON: IconoirIcon> Widget<COL> for IconButton<'_, ICON> {
             ui.start_drawing(&iresponse.area);
 
             ui.draw(
-                &Rectangle::new(iresponse.area.top_left, iresponse.area.size)
-                    .into_styled(rect_style),
+                &RoundedRectangle::with_equal_corners(
+                    Rectangle::new(iresponse.area.top_left, iresponse.area.size),
+                    Size::new(ui.style().button_corner_radius,ui.style().button_corner_radius)
+                )
+                .into_styled(rect_style),
             )
             .ok();
             ui.draw(&icon_img).ok();

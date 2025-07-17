@@ -11,7 +11,7 @@ use embedded_graphics::geometry::{Point, Size};
 use embedded_graphics::mono_font::MonoTextStyle;
 use embedded_graphics::pixelcolor::PixelColor;
 use embedded_graphics::prelude::*;
-use embedded_graphics::primitives::{PrimitiveStyleBuilder, Rectangle};
+use embedded_graphics::primitives::{PrimitiveStyleBuilder, Rectangle, RoundedRectangle};
 use embedded_graphics::text::{Alignment, Baseline, Text};
 
 /// # Button Widget
@@ -213,8 +213,11 @@ impl<COL: PixelColor> Widget<COL> for Button<'_> {
             ui.start_drawing(&iresponse.area);
 
             ui.draw(
-                &Rectangle::new(iresponse.area.top_left, iresponse.area.size)
-                    .into_styled(rect_style),
+                &RoundedRectangle::with_equal_corners(
+                    Rectangle::new(iresponse.area.top_left, iresponse.area.size),
+                    Size::new(ui.style().button_corner_radius,ui.style().button_corner_radius)
+                )
+                .into_styled(rect_style),
             )
             .ok();
             ui.draw(&text).ok();

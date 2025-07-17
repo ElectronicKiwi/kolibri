@@ -17,7 +17,7 @@ use embedded_graphics::geometry::{Point, Size};
 use embedded_graphics::mono_font::MonoTextStyle;
 use embedded_graphics::pixelcolor::PixelColor;
 use embedded_graphics::prelude::*;
-use embedded_graphics::primitives::{PrimitiveStyleBuilder, Rectangle};
+use embedded_graphics::primitives::{PrimitiveStyleBuilder, Rectangle, RoundedRectangle};
 use embedded_graphics::text::{Alignment, Baseline, Text};
 
 /// A button widget that can be toggled on and off.
@@ -240,7 +240,11 @@ impl<COL: PixelColor> Widget<COL> for ToggleButton<'_> {
         if redraw {
             ui.start_drawing(&iresponse.area);
 
-            let rect = Rectangle::new(iresponse.area.top_left, iresponse.area.size);
+            let rect = RoundedRectangle::with_equal_corners(
+                Rectangle::new(iresponse.area.top_left, iresponse.area.size),
+                    Size::new(ui.style().button_corner_radius,ui.style().button_corner_radius),
+            );
+
             ui.draw(&rect.into_styled(style))
                 .map_err(|_| GuiError::DrawError(Some("Couldn't draw ToggleButton")))?;
             ui.draw(&text)
