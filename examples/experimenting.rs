@@ -70,10 +70,16 @@ fn main() -> Result<(), core::convert::Infallible> {
 
         last_down = mouse_down;
 
-        ui.add(
-            Label::new("Experimenting Example")
+        ui.add_horizontal(
+            Label::new("Experimenting")
                 .with_font(ascii::FONT_10X20)
                 .with_color(Rgb565::CSS_BLUE_VIOLET),
+        );
+        ui.add(
+            Label::new("Example")
+                .with_font(ascii::FONT_10X20)
+                .with_color(Rgb565::CSS_BLUE_VIOLET)
+                .with_background_color(Rgb565::CSS_YELLOW),
         );
 
         if ui

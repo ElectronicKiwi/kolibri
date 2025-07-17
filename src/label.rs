@@ -97,6 +97,7 @@ pub struct Label<'a, COL: PixelColor> {
     font: Option<MonoFont<'a>>,
     smartstate: Container<'a, Smartstate>,
     text_color: Option<COL>,
+    text_background_color: Option<COL>,
 }
 
 impl<'a, COL: PixelColor> Label<'a, COL> {
@@ -130,6 +131,7 @@ impl<'a, COL: PixelColor> Label<'a, COL> {
             font: None,
             smartstate: Container::empty(),
             text_color: None,
+            text_background_color: None,
         }
     }
 
@@ -163,10 +165,66 @@ impl<'a, COL: PixelColor> Label<'a, COL> {
         self
     }
 
+    /// Sets a custom text color for the label.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use embedded_graphics::pixelcolor::Rgb565;
+    /// # use embedded_graphics_simulator::{SimulatorDisplay, OutputSettingsBuilder, Window};
+    /// # use kolibri_embedded_gui::style::medsize_rgb565_style;
+    /// # use kolibri_embedded_gui::ui::Ui;
+    /// # use embedded_graphics::prelude::*;
+    /// # use embedded_graphics::primitives::Rectangle;
+    /// # use embedded_iconoir::prelude::*;
+    /// # use embedded_iconoir::size12px;
+    /// # use kolibri_embedded_gui::ui::*;
+    /// # use embedded_graphics::mono_font::ascii;
+    /// # use kolibri_embedded_gui::label::*;
+    /// # use kolibri_embedded_gui::smartstate::*;
+    /// # let mut display = SimulatorDisplay::<Rgb565>::new(Size::new(320, 240));
+    /// # let output_settings = OutputSettingsBuilder::new().build();
+    /// # let mut window = Window::new("Kolibri Example", &output_settings);
+    /// # use kolibri_embedded_gui::label::*;
+    /// # let hasher = Hasher::new();
+    /// # let mut ui = Ui::new_fullscreen(&mut display, medsize_rgb565_style());
+    /// ui.add(Label::new("Custom Text Color").with_color(Rgb565::CSS_BLUE));
+    /// ```
     pub fn with_color(mut self, color: COL) -> Self {
         self.text_color = Some(color);
         self
     }
+
+    /// Sets a custom background color for the label.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use embedded_graphics::pixelcolor::Rgb565;
+    /// # use embedded_graphics_simulator::{SimulatorDisplay, OutputSettingsBuilder, Window};
+    /// # use kolibri_embedded_gui::style::medsize_rgb565_style;
+    /// # use kolibri_embedded_gui::ui::Ui;
+    /// # use embedded_graphics::prelude::*;
+    /// # use embedded_graphics::primitives::Rectangle;
+    /// # use embedded_iconoir::prelude::*;
+    /// # use embedded_iconoir::size12px;
+    /// # use kolibri_embedded_gui::ui::*;
+    /// # use embedded_graphics::mono_font::ascii;
+    /// # use kolibri_embedded_gui::label::*;
+    /// # use kolibri_embedded_gui::smartstate::*;
+    /// # let mut display = SimulatorDisplay::<Rgb565>::new(Size::new(320, 240));
+    /// # let output_settings = OutputSettingsBuilder::new().build();
+    /// # let mut window = Window::new("Kolibri Example", &output_settings);
+    /// # use kolibri_embedded_gui::label::*;
+    /// # let hasher = Hasher::new();
+    /// # let mut ui = Ui::new_fullscreen(&mut display, medsize_rgb565_style());
+    /// ui.add(Label::new("Custom Background Color").with_background_color(Rgb565::CSS_YELLOW));
+    /// ```
+    pub fn with_background_color(mut self, color: COL) -> Self {
+        self.text_background_color = Some(color);
+        self
+    }
+
 
     /// Adds a [Smartstate] to the label for incremental redrawing.
     ///
@@ -217,13 +275,18 @@ impl<COL: PixelColor> Widget<COL> for Label<'_, COL> {
             ui.style().default_font
         };
 
+        let mut char_style = MonoTextStyle::new(
+                &font,
+                self.text_color.unwrap_or_else(|| ui.style().text_color),
+        );
+        if self.text_background_color.is_some() {
+            char_style.background_color = self.text_background_color;
+        }
+
         let mut text = Text::new(
             self.text,
             Point::new(0, 0),
-            MonoTextStyle::new(
-                &font,
-                self.text_color.unwrap_or_else(|| ui.style().text_color),
-            ),
+            char_style,
         );
 
         let size = text.bounding_box();
@@ -339,6 +402,7 @@ pub struct HashLabel<'a, COL: PixelColor> {
     smartstate: Container<'a, Smartstate>,
     hasher: &'a Hasher,
     text_color: Option<COL>,
+    text_background_color: Option<COL>,
 }
 
 impl<'a, COL: PixelColor> HashLabel<'a, COL> {
@@ -382,6 +446,7 @@ impl<'a, COL: PixelColor> HashLabel<'a, COL> {
             smartstate: Container::new(smartstate),
             hasher,
             text_color: None,
+            text_background_color: None,
         }
     }
 
@@ -417,8 +482,68 @@ impl<'a, COL: PixelColor> HashLabel<'a, COL> {
         self.font = Some(font);
         self
     }
-}
 
+    /// Sets a custom text color for the label.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use embedded_graphics::pixelcolor::Rgb565;
+    /// # use embedded_graphics_simulator::{SimulatorDisplay, OutputSettingsBuilder, Window};
+    /// # use kolibri_embedded_gui::style::medsize_rgb565_style;
+    /// # use kolibri_embedded_gui::ui::Ui;
+    /// # use embedded_graphics::prelude::*;
+    /// # use embedded_graphics::primitives::Rectangle;
+    /// # use embedded_iconoir::prelude::*;
+    /// # use embedded_iconoir::size12px;
+    /// # use kolibri_embedded_gui::ui::*;
+    /// # use embedded_graphics::mono_font::ascii;
+    /// # use kolibri_embedded_gui::label::*;
+    /// # use kolibri_embedded_gui::smartstate::*;
+    /// # let mut display = SimulatorDisplay::<Rgb565>::new(Size::new(320, 240));
+    /// # let output_settings = OutputSettingsBuilder::new().build();
+    /// # let mut window = Window::new("Kolibri Example", &output_settings);
+    /// # use kolibri_embedded_gui::label::*;
+    /// # let hasher = Hasher::new();
+    /// # let mut ui = Ui::new_fullscreen(&mut display, medsize_rgb565_style());
+    /// ui.add(Label::new("Custom Text Color").with_color(Rgb565::CSS_BLUE));
+    /// ```
+    pub fn with_color(mut self, color: COL) -> Self {
+        self.text_color = Some(color);
+        self
+    }
+
+    /// Sets a custom background color for the label.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use embedded_graphics::pixelcolor::Rgb565;
+    /// # use embedded_graphics_simulator::{SimulatorDisplay, OutputSettingsBuilder, Window};
+    /// # use kolibri_embedded_gui::style::medsize_rgb565_style;
+    /// # use kolibri_embedded_gui::ui::Ui;
+    /// # use embedded_graphics::prelude::*;
+    /// # use embedded_graphics::primitives::Rectangle;
+    /// # use embedded_iconoir::prelude::*;
+    /// # use embedded_iconoir::size12px;
+    /// # use kolibri_embedded_gui::ui::*;
+    /// # use embedded_graphics::mono_font::ascii;
+    /// # use kolibri_embedded_gui::label::*;
+    /// # use kolibri_embedded_gui::smartstate::*;
+    /// # let mut display = SimulatorDisplay::<Rgb565>::new(Size::new(320, 240));
+    /// # let output_settings = OutputSettingsBuilder::new().build();
+    /// # let mut window = Window::new("Kolibri Example", &output_settings);
+    /// # use kolibri_embedded_gui::label::*;
+    /// # let hasher = Hasher::new();
+    /// # let mut ui = Ui::new_fullscreen(&mut display, medsize_rgb565_style());
+    /// ui.add(Label::new("Custom Background Color").with_background_color(Rgb565::CSS_YELLOW));
+    /// ```
+    pub fn with_background_color(mut self, color: COL) -> Self {
+        self.text_background_color = Some(color);
+        self
+    }    
+
+}
 impl<COL: PixelColor> Widget<COL> for HashLabel<'_, COL> {
     fn draw<DRAW: DrawTarget<Color = COL>>(
         &mut self,
@@ -432,13 +557,18 @@ impl<COL: PixelColor> Widget<COL> for HashLabel<'_, COL> {
             ui.style().default_font
         };
 
+        let mut char_style = MonoTextStyle::new(
+                &font,
+                self.text_color.unwrap_or_else(|| ui.style().text_color),
+        );
+        if self.text_background_color.is_some() {
+            char_style.background_color = self.text_background_color;
+        }
+
         let mut text = Text::new(
             self.text,
             Point::new(0, 0),
-            MonoTextStyle::new(
-                &font, 
-                self.text_color.unwrap_or_else(|| ui.style().text_color),
-            )
+            char_style,
         );
 
         let size = text.bounding_box();
