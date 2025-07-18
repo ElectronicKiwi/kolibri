@@ -383,8 +383,8 @@ impl<COL: PixelColor, ICON: IconoirIcon> Widget<COL> for IconButton<'_, ICON> {
         let rect_style: PrimitiveStyle<COL>;
         let context_style = match self.context {
             WidgetContext::Normal => ui.style().normal_widget,
-            WidgetContext::Primary => ui.style().primary_widget,
-            WidgetContext::Secondary => ui.style().secondary_widget,
+            WidgetContext::Primary => ui.style().primary_widget.unwrap_or_else(|| ui.style().normal_widget),
+            WidgetContext::Secondary => ui.style().secondary_widget.unwrap_or_else(|| ui.style().normal_widget),
         };
 
         if self.is_enabled {

@@ -189,7 +189,7 @@ impl<COL: PixelColor> Widget<COL> for Button<'_> {
         let height = ui.style().default_widget_height;
         let size = text.bounding_box();
         let padding = ui.style().spacing.button_padding;
-        let border = ui.style().primary_widget.normal.border_width;
+        let border = ui.style().normal_widget.normal.border_width;
 
         // calculate minumum dimensions to contain contents
         let mut desired_size = Size::new(
@@ -226,8 +226,8 @@ impl<COL: PixelColor> Widget<COL> for Button<'_> {
 
         let context_style = match self.context {
             WidgetContext::Normal => ui.style().normal_widget,
-            WidgetContext::Primary => ui.style().primary_widget,
-            WidgetContext::Secondary => ui.style().secondary_widget,
+            WidgetContext::Primary => ui.style().primary_widget.unwrap_or_else(|| ui.style().normal_widget),
+            WidgetContext::Secondary => ui.style().secondary_widget.unwrap_or_else(|| ui.style().normal_widget),
         };
 
         if self.is_enabled {

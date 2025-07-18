@@ -91,26 +91,6 @@ pub struct WidgetContextStyle<COL: PixelColor> {
     pub disabled: WidgetStyle<COL>,
 }
 
-#[derive(Debug, Clone, Copy)]
-pub struct Style<COL: PixelColor> {
-    /// Background color for the entire UI
-    pub background_color: COL,
-    /// Default font used for text rendering
-    pub default_font: MonoFont<'static>,
-    /// Color used for text
-    pub text_color: COL,
-    pub normal_widget: WidgetContextStyle<COL>,
-    pub primary_widget: WidgetContextStyle<COL>,
-    pub secondary_widget: WidgetContextStyle<COL>,
-    /// Default height for widgets like buttons
-    pub default_widget_height: u32,
-    /// Spacing configuration for UI elements
-    pub spacing: Spacing,
-    /// radius for button corners
-    pub button_corner_radius: u32,
-}
-
-/*
 /// Debug-friendly dark theme with visible borders for development.
 ///
 /// This theme uses high-contrast colors and visible borders to make UI layout
@@ -119,7 +99,7 @@ pub fn medsize_rgb565_debug_style() -> Style<Rgb565> {
     Style {
         background_color: Rgb565::BLACK,
         text_color: Rgb565::WHITE,
-        primary : ContextStyle { 
+        normal_widget : WidgetContextStyle { 
             normal: WidgetStyle { 
                 border_width: 1, 
                 border_color: Rgb565::RED, 
@@ -129,7 +109,7 @@ pub fn medsize_rgb565_debug_style() -> Style<Rgb565> {
             hover: WidgetStyle { 
                 border_width: 1, 
                 border_color: Rgb565::WHITE, 
-                background_color: Rgb565::new(0x1, 0x2, 0x1), 
+                background_color: Rgb565::new(0x1, 0x2, 0x1),
                 foreground_color: Rgb565::WHITE,  
             }, 
             active: WidgetStyle { 
@@ -145,32 +125,8 @@ pub fn medsize_rgb565_debug_style() -> Style<Rgb565> {
                 foreground_color: Rgb565::CSS_DARK_GRAY, 
             } 
         },
-        secondary : ContextStyle { 
-            normal: WidgetStyle { 
-                border_width: 1, 
-                border_color: Rgb565::WHITE, 
-                background_color: Rgb565::BLACK, 
-                foreground_color: Rgb565::WHITE, 
-            },
-            hover: WidgetStyle { 
-                border_width: 1, 
-                border_color: Rgb565::WHITE, 
-                background_color: Rgb565::new(0x1, 0x2, 0x1), 
-                foreground_color: Rgb565::WHITE,  
-            }, 
-            active: WidgetStyle { 
-                border_width: 1, 
-                border_color: Rgb565::WHITE, 
-                background_color: Rgb565::CYAN, 
-                foreground_color: Rgb565::WHITE, 
-            }, 
-            disabled: WidgetStyle { 
-                border_width: 0, 
-                border_color: Rgb565::CSS_DARK_GRAY, 
-                background_color: Rgb565::BLACK, 
-                foreground_color: Rgb565::CSS_DARK_GRAY, 
-            } 
-        },
+        primary_widget : None,
+        secondary_widget : None,
         default_widget_height: 16,
         default_font: mono_font::iso_8859_10::FONT_9X15,
         spacing: Spacing {
@@ -190,8 +146,7 @@ pub fn medsize_rgb565_style() -> Style<Rgb565> {
     Style {
         background_color: Rgb565::new(0x4, 0x8, 0x4), // pretty dark gray
         text_color: Rgb565::WHITE,
-
-        primary : ContextStyle { 
+        normal_widget : WidgetContextStyle { 
             normal: WidgetStyle { 
                 border_width: 0, 
                 border_color: Rgb565::WHITE,
@@ -217,32 +172,9 @@ pub fn medsize_rgb565_style() -> Style<Rgb565> {
                 foreground_color: Rgb565::CSS_DARK_GRAY, 
             } 
         },
-        secondary : ContextStyle { 
-            normal: WidgetStyle { 
-                border_width: 0, 
-                border_color: Rgb565::WHITE, 
-                background_color: Rgb565::BLACK, 
-                foreground_color: Rgb565::WHITE, 
-            },
-            hover: WidgetStyle { 
-                border_width: 1, 
-                border_color: Rgb565::WHITE, 
-                background_color: Rgb565::new(0x1, 0x2, 0x1),
-                foreground_color: Rgb565::WHITE,  
-            }, 
-            active: WidgetStyle { 
-                border_width: 0, 
-                border_color: Rgb565::WHITE, 
-                background_color: Rgb565::CYAN, 
-                foreground_color: Rgb565::CSS_DARK_CYAN, 
-            }, 
-            disabled: WidgetStyle { 
-                border_width: 0, 
-                border_color: Rgb565::CSS_DARK_GRAY, 
-                background_color: Rgb565::BLACK, 
-                foreground_color: Rgb565::CSS_DARK_GRAY, 
-            } 
-        },
+
+        primary_widget : None,
+        secondary_widget : None,
         default_widget_height: 16,
         default_font: mono_font::iso_8859_10::FONT_9X15,
         spacing: Spacing {
@@ -254,25 +186,43 @@ pub fn medsize_rgb565_style() -> Style<Rgb565> {
         button_corner_radius: 3,
     }
 }
-     */
-/*
+     
 /// Light theme for RGB565 displays.
 ///
 /// Features a white background with orange accents and black text.
 pub fn medsize_light_rgb565_style() -> Style<Rgb565> {
     Style {
         background_color: Rgb565::CSS_WHITE,
-        item_background_color: Rgb565::CSS_NAVAJO_WHITE,
-        highlight_item_background_color: Rgb565::CSS_GAINSBORO,
-        border_color: Rgb565::CSS_WHITE,
-        highlight_border_color: Rgb565::CSS_BLACK,
-        primary_color: Rgb565::CSS_DARK_ORANGE,
-        secondary_color: Rgb565::YELLOW,
-        icon_color: Rgb565::CSS_BLACK,
         text_color: Rgb565::CSS_BLACK,
+        normal_widget : WidgetContextStyle { 
+            normal: WidgetStyle { 
+                border_width: 0, 
+                border_color: Rgb565::CSS_WHITE, 
+                background_color: Rgb565::CSS_NAVAJO_WHITE, 
+                foreground_color: Rgb565::CSS_BLACK 
+            }, 
+            hover:  WidgetStyle { 
+                border_width: 1, 
+                border_color: Rgb565::CSS_BLACK, 
+                background_color: Rgb565::CSS_GAINSBORO, 
+                foreground_color: Rgb565::CSS_BLACK 
+            }, 
+            active: WidgetStyle { 
+                border_width: 0, 
+                border_color: Rgb565::CSS_WHITE, 
+                background_color: Rgb565::CSS_DARK_ORANGE, 
+                foreground_color: Rgb565::CSS_BLACK 
+            }, 
+            disabled: WidgetStyle { 
+                border_width: 0, 
+                border_color: Rgb565::CSS_LIGHT_GRAY,  
+                background_color: Rgb565::CSS_LIGHT_GRAY, 
+                foreground_color: Rgb565::CSS_DARK_GRAY 
+            }, 
+        },
+        primary_widget : None, 
+        secondary_widget : None,
         default_widget_height: 16,
-        border_width: 0,
-        highlight_border_width: 1,
         default_font: mono_font::iso_8859_10::FONT_9X15,
         spacing: Spacing {
             item_spacing: Size::new(8, 4),
@@ -292,7 +242,7 @@ pub fn medsize_sakura_rgb565_style() -> Style<Rgb565> {
         background_color: Rgb565::CSS_PEACH_PUFF,
         text_color: Rgb565::CSS_BLACK,
         
-        primary : ContextStyle { 
+        normal_widget : WidgetContextStyle {
             normal: WidgetStyle { 
                 border_width: 0, 
                 border_color: Rgb565::WHITE,
@@ -318,33 +268,8 @@ pub fn medsize_sakura_rgb565_style() -> Style<Rgb565> {
                 foreground_color: Rgb565::CSS_DARK_GRAY, 
             } 
         },
-        secondary : ContextStyle { 
-            normal: WidgetStyle { 
-                border_width: 0, 
-                border_color: Rgb565::WHITE, 
-                background_color: Rgb565::BLACK, 
-                foreground_color: Rgb565::WHITE, 
-            },
-            hover: WidgetStyle { 
-                border_width: 1, 
-                border_color: Rgb565::CSS_BLACK, 
-                background_color: Rgb565::CSS_HOT_PINK,
-                foreground_color: Rgb565::WHITE,  
-            }, 
-            active: WidgetStyle { 
-                border_width: 0, 
-                border_color: Rgb565::WHITE, 
-                background_color: Rgb565::CSS_HOT_PINK, 
-                foreground_color: Rgb565::CSS_DARK_CYAN, 
-            }, 
-            disabled: WidgetStyle { 
-                border_width: 0, 
-                border_color: Rgb565::CSS_DARK_GRAY, 
-                background_color: Rgb565::BLACK, 
-                foreground_color: Rgb565::CSS_DARK_GRAY, 
-            } 
-        },        
-        
+        primary_widget : None,
+        secondary_widget : None,
         default_widget_height: 16,
         default_font: mono_font::ascii::FONT_9X15,
         spacing: Spacing {
@@ -356,24 +281,43 @@ pub fn medsize_sakura_rgb565_style() -> Style<Rgb565> {
         button_corner_radius: 5,
     }
 }
-/*
+
 /// Blue theme for RGB565 displays.
 ///
 /// Features a midnight blue background with violet accents and white text.
 pub fn medsize_blue_rgb565_style() -> Style<Rgb565> {
     Style {
         background_color: Rgb565::CSS_MIDNIGHT_BLUE,
-        item_background_color: Rgb565::CSS_BLUE,
-        highlight_item_background_color: Rgb565::CSS_BLUE_VIOLET,
-        border_color: Rgb565::CSS_WHITE,
-        highlight_border_color: Rgb565::CSS_WHITE,
-        primary_color: Rgb565::CSS_PALE_VIOLET_RED,
-        secondary_color: Rgb565::YELLOW,
-        icon_color: Rgb565::CSS_WHITE,
         text_color: Rgb565::CSS_WHITE,
+        normal_widget : WidgetContextStyle { 
+            normal: WidgetStyle { 
+                border_width: 0, 
+                border_color: Rgb565::CSS_WHITE, 
+                background_color: Rgb565::CSS_BLUE, 
+                foreground_color: Rgb565::CSS_WHITE 
+            }, 
+            hover:  WidgetStyle { 
+                border_width: 1, 
+                border_color: Rgb565::CSS_WHITE, 
+                background_color: Rgb565::CSS_LIGHT_BLUE, 
+                foreground_color: Rgb565::CSS_WHITE 
+            }, 
+            active: WidgetStyle { 
+                border_width: 0, 
+                border_color: Rgb565::CSS_WHITE, 
+                background_color: Rgb565::CSS_PALE_VIOLET_RED, 
+                foreground_color: Rgb565::CSS_WHITE 
+            }, 
+            disabled: WidgetStyle { 
+                border_width: 0, 
+                border_color: Rgb565::CSS_WHITE, 
+                background_color: Rgb565::CSS_DARK_GRAY, 
+                foreground_color: Rgb565::CSS_GRAY, 
+            }, 
+        },
+        primary_widget : None,
+        secondary_widget : None,
         default_widget_height: 16,
-        border_width: 0,
-        highlight_border_width: 1,
         default_font: mono_font::iso_8859_10::FONT_9X15,
         spacing: Spacing {
             item_spacing: Size::new(8, 4),
@@ -391,17 +335,36 @@ pub fn medsize_blue_rgb565_style() -> Style<Rgb565> {
 pub fn medsize_crt_rgb565_style() -> Style<Rgb565> {
     Style {
         background_color: Rgb565::CSS_BLACK,
-        item_background_color: Rgb565::CSS_BLACK,
-        highlight_item_background_color: Rgb565::CSS_BLACK,
-        border_color: Rgb565::CSS_GREEN,
-        highlight_border_color: Rgb565::CSS_GREEN,
-        primary_color: Rgb565::CSS_GREEN,
-        secondary_color: Rgb565::YELLOW,
-        icon_color: Rgb565::CSS_GREEN,
         text_color: Rgb565::CSS_GREEN,
+        normal_widget : WidgetContextStyle { 
+            normal: WidgetStyle { 
+                border_width: 1, 
+                border_color: Rgb565::CSS_GREEN, 
+                background_color: Rgb565::CSS_BLACK, 
+                foreground_color: Rgb565::CSS_GREEN 
+            }, 
+            hover:  WidgetStyle { 
+                border_width: 3, 
+                border_color: Rgb565::CSS_GREEN, 
+                background_color: Rgb565::CSS_BLACK, 
+                foreground_color: Rgb565::CSS_GREEN 
+            }, 
+            active: WidgetStyle { 
+                border_width: 1, 
+                border_color: Rgb565::CSS_GREEN, 
+                background_color: Rgb565::CSS_GREEN, 
+                foreground_color: Rgb565::CSS_BLACK 
+            }, 
+            disabled: WidgetStyle { 
+                border_width: 1, 
+                border_color: Rgb565::CSS_GRAY, 
+                background_color: Rgb565::CSS_BLACK, 
+                foreground_color: Rgb565::CSS_GRAY
+            }, 
+        },
+        primary_widget : None,
+        secondary_widget : None,
         default_widget_height: 16,
-        border_width: 1,
-        highlight_border_width: 3,
         default_font: mono_font::iso_8859_10::FONT_9X15,
         spacing: Spacing {
             item_spacing: Size::new(8, 4),
@@ -419,17 +382,36 @@ pub fn medsize_crt_rgb565_style() -> Style<Rgb565> {
 pub fn medsize_retro_rgb565_style() -> Style<Rgb565> {
     Style {
         background_color: Rgb565::CSS_WHITE,
-        item_background_color: Rgb565::CSS_WHITE,
-        highlight_item_background_color: Rgb565::CSS_WHITE,
-        border_color: Rgb565::CSS_BLACK,
-        highlight_border_color: Rgb565::CSS_BLACK,
-        primary_color: Rgb565::CSS_BLACK,
-        secondary_color: Rgb565::YELLOW,
-        icon_color: Rgb565::CSS_BLACK,
         text_color: Rgb565::CSS_BLACK,
+        normal_widget : WidgetContextStyle { 
+            normal: WidgetStyle { 
+                border_width: 1, 
+                border_color:  Rgb565::CSS_BLACK, 
+                background_color: Rgb565::CSS_WHITE, 
+                foreground_color: Rgb565::CSS_BLACK 
+            }, 
+            hover:  WidgetStyle { 
+                border_width: 1, 
+                border_color:  Rgb565::CSS_BLACK, 
+                background_color: Rgb565::CSS_WHITE, 
+                foreground_color: Rgb565::CSS_BLACK 
+            }, 
+            active: WidgetStyle { 
+                border_width: 1, 
+                border_color: Rgb565::CSS_WHITE, 
+                background_color: Rgb565::CSS_BLACK, 
+                foreground_color: Rgb565::CSS_WHITE 
+            }, 
+            disabled: WidgetStyle { 
+                border_width: 1, 
+                border_color:  Rgb565::CSS_GRAY, 
+                background_color: Rgb565::CSS_LIGHT_GRAY, 
+                foreground_color: Rgb565::CSS_GRAY
+            }, 
+        },
+        primary_widget : None,
+        secondary_widget : None,
         default_widget_height: 16,
-        border_width: 1,
-        highlight_border_width: 1,
         default_font: mono_font::ascii::FONT_9X15,
         spacing: Spacing {
             item_spacing: Size::new(8, 4),
@@ -440,7 +422,7 @@ pub fn medsize_retro_rgb565_style() -> Style<Rgb565> {
         button_corner_radius: 0,
     }
 }
- */
+ 
 /// Defines the visual appearance of a Kolibri UI.
 ///
 /// The [Style] struct controls all visual aspects of the UI, including colors,
@@ -483,41 +465,28 @@ pub fn medsize_retro_rgb565_style() -> Style<Rgb565> {
 pub struct Style<COL: PixelColor> {
     /// Background color for the entire UI
     pub background_color: COL,
-    /// Color used for borders around widgets
-    pub border_color: COL,
-    /// Primary accent color for interactive elements
-    pub primary_color: COL,
-    /// Secondary accent color for additional highlighting
-    pub secondary_color: COL,
-    /// Color used for icons
-    pub icon_color: COL,
-    /// Default height for widgets like buttons
-    pub default_widget_height: u32,
-    /// Width of borders around widgets
-    pub border_width: u32,
     /// Default font used for text rendering
     pub default_font: MonoFont<'static>,
-    /// Spacing configuration for UI elements
-    pub spacing: Spacing,
-    /// Background color for items like buttons
-    pub item_background_color: COL,
-    /// Background color for highlighted items
-    pub highlight_item_background_color: COL,
-    /// Border color for highlighted elements
-    pub highlight_border_color: COL,
-    /// Border width for highlighted elements
-    pub highlight_border_width: u32,
     /// Color used for text
     pub text_color: COL,
+    ///WidgetContextStyle used for widgets with context = WidgetContext::Normal
+    pub normal_widget: WidgetContextStyle<COL>,
+    ///WidgetContextStyle used for widgets with context = WidgetContext::Primary
+    pub primary_widget: Option<WidgetContextStyle<COL>>,
+    ///WidgetContextStyle used for widgets with context = WidgetContext::Secondary
+    pub secondary_widget: Option<WidgetContextStyle<COL>>,
+    /// Default height for widgets like buttons
+    pub default_widget_height: u32,
+    /// Spacing configuration for UI elements
+    pub spacing: Spacing,
     /// radius for button corners
     pub button_corner_radius: u32,
 }
-*/
 
 /// Bootstrap-inspired theme for RGB565 displays.
 ///
 /// Features a dark background with white text.
-// defined as from(Rgb888) to allow direct comparison with standard web/rgb colors and color pickers
+// custom colors defined as from(Rgb888) to allow direct comparison with standard web/rgb colors and color pickers and easy conversion to other PixelColors
 pub fn medsize_bootstrap_rgb565_style() -> Style<Rgb565> {
     Style {
         background_color: Rgb565::CSS_BLACK,
@@ -548,7 +517,7 @@ pub fn medsize_bootstrap_rgb565_style() -> Style<Rgb565> {
                 foreground_color: Rgb565::CSS_DARK_GRAY, 
             } 
         },        
-        primary_widget : WidgetContextStyle { 
+        primary_widget : Some(WidgetContextStyle { 
             normal: WidgetStyle { 
                 border_width: 0, 
                 border_color: Rgb565::from(Rgb888::new(13,110,253)), // rgb(13,110,253)
@@ -573,8 +542,8 @@ pub fn medsize_bootstrap_rgb565_style() -> Style<Rgb565> {
                 background_color: Rgb565::from(Rgb888::new(0x13, 0x54, 0xb3)), // rgba(19, 84, 179, 1)
                 foreground_color: Rgb565::CSS_LIGHT_GRAY, 
             } 
-        },
-        secondary_widget : WidgetContextStyle { 
+        }),
+        secondary_widget : Some(WidgetContextStyle { 
             normal: WidgetStyle { 
                 border_width: 0, 
                 border_color: Rgb565::from(Rgb888::new(108,117,125)), // rgb(108,117,125)
@@ -599,8 +568,7 @@ pub fn medsize_bootstrap_rgb565_style() -> Style<Rgb565> {
                 background_color: Rgb565::from(Rgb888::new(81,89, 95)), // rgb(81, 89, 95)
                 foreground_color: Rgb565::from(Rgb888::new(177,179,180)), // rgb(177, 179, 180)
             } 
-        },        
-        
+        }),        
         default_widget_height: 16,
         default_font: mono_font::ascii::FONT_9X15,
         spacing: Spacing {

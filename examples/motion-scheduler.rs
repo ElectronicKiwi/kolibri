@@ -168,9 +168,9 @@ impl<COL: PixelColor> Widget<COL> for StepWidget<'_> {
 
             let icon =
                 size18px::navigation::NavArrowUp::new(if matches!(intr, Some(ButtonPress::Up)) {
-                    ui.style().primary_color
+                    ui.style().normal_widget.active.foreground_color
                 } else {
-                    ui.style().icon_color
+                    ui.style().normal_widget.normal.foreground_color
                 });
             let top_nav = Image::new(
                 &icon,
@@ -181,9 +181,9 @@ impl<COL: PixelColor> Widget<COL> for StepWidget<'_> {
             ui.draw(&top_nav)?;
 
             let col = if matches!(intr, Some(ButtonPress::Center)) {
-                ui.style().primary_color
-            } else {
-                ui.style().icon_color
+                    ui.style().normal_widget.active.foreground_color
+                } else {
+                    ui.style().normal_widget.normal.foreground_color
             };
             let pos = iresponse.area.top_left
                 + Point::new(
@@ -258,9 +258,9 @@ impl<COL: PixelColor> Widget<COL> for StepWidget<'_> {
             ui.draw(&Image::new(
                 &size18px::navigation::NavArrowDown::new(
                     if matches!(intr, Some(ButtonPress::Down)) {
-                        ui.style().primary_color
+                        ui.style().normal_widget.active.foreground_color
                     } else {
-                        ui.style().icon_color
+                        ui.style().normal_widget.normal.foreground_color
                     },
                 ),
                 iresponse.area.top_left
