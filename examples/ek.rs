@@ -8,6 +8,7 @@ use embedded_graphics_simulator::{
     OutputSettingsBuilder, SimulatorDisplay, SimulatorEvent, Window,
 };
 use kolibri_embedded_gui::button::Button;
+use kolibri_embedded_gui::checkbox::Checkbox;
 use kolibri_embedded_gui::icon::IconWidget;
 use kolibri_embedded_gui::iconbutton::IconButton;
 use kolibri_embedded_gui::icons::size24px;
@@ -38,7 +39,7 @@ fn main() -> Result<(), core::convert::Infallible> {
     let mut smartstates = SmartstateProvider::<20>::new();
 
     // clear bg once
-    let mut ui = Ui::new_fullscreen(&mut display, medsize_sakura_rgb565_style());
+    let mut ui = Ui::new_fullscreen(&mut display, medsize_bootstrap_rgb565_style());
     ui.clear_background().unwrap();
 
     // alloc buffer
@@ -47,12 +48,14 @@ fn main() -> Result<(), core::convert::Infallible> {
 
     let mut slider_val = 0;
     let mut state = false;
-
+    let mut enable_state;
+    let mut check_state = false;
     'outer: loop {
-        let mut ui = Ui::new_fullscreen(&mut display, medsize_sakura_rgb565_style());
+        let mut ui = Ui::new_fullscreen(&mut display, medsize_bootstrap_rgb565_style());
         // ui.draw_widget_bounds_debug(Rgb565::RED);
         ui.set_buffer(&mut buffer);
         smartstates.restart_counter();
+        enable_state = state;
 
         match (last_down, mouse_down, location) {
             (false, true, loc) => {
@@ -75,7 +78,7 @@ fn main() -> Result<(), core::convert::Infallible> {
             Label::new("Experimenting")
                 .with_font(ascii::FONT_10X20)
                 .with_color(Rgb565::CSS_BLUE_VIOLET)
-                .with_underline(DecorationColor::Custom(Rgb565::CSS_BLACK)),
+                .with_underline(DecorationColor::Custom(Rgb565::CSS_GREEN)),
         );
         ui.add(
             Label::new("Example")
@@ -86,8 +89,12 @@ fn main() -> Result<(), core::convert::Infallible> {
                 ,
         );
 
+        ui.add_horizontal(ToggleButton::new("Enable Widgets", &mut state)
+            .expand_width(200)
+            .smartstate(smartstates.nxt()));
+        ui.add(ToggleSwitch::new(&mut state).smartstate(smartstates.nxt()));
         if ui
-            .add_horizontal(Button::new("Something").smartstate(smartstates.nxt()))
+            .add_horizontal(Button::new("Something").enable(&enable_state).smartstate(smartstates.nxt()))
             .clicked()
         {
             i = i.saturating_add(1);
@@ -99,38 +106,35 @@ fn main() -> Result<(), core::convert::Infallible> {
             smartstates.nxt(),
             &hasher,
         ));
-
-        // println!("label smartstate: {:?}", smartstates.current());
-
         ui.clear_row_to_end().unwrap();
         ui.new_row();
 
-        ui.expand_row_height(40);
-        ui.add_horizontal(Button::new("Expanded\nbutton!")
+        // println!("label smartstate: {:?}", smartstates.current());
+        ui.expand_row_height(30);
+        ui.add_horizontal(Button::new("Wider button")
             .expand_width(250)
+            .enable(&enable_state)            
             .smartstate(smartstates.nxt()));
         ui.add(IconWidget::<size24px::layout::CornerBottomLeft, Rgb565>::new_from_type().with_color(Rgb565::CSS_DARK_RED).with_background_color(Rgb565::CSS_DARK_GRAY));
         // ui.add(IconButton::new(size24px::actions::AddCircle));
-        ui.add_horizontal(IconButton::new(size24px::actions::AddCircle).label("Add 2").expand_width(100));
-        ui.add_horizontal(IconButton::new(size24px::actions::AddCircle).label("Add 2"));
-        ui.add_horizontal(IconButton::new(size24px::actions::AddCircle).label("Add 2"));
+        ui.add_horizontal(IconButton::new(size24px::actions::AddCircle).label("Primary").enable(&enable_state).context(WidgetContext::Primary));
+        ui.add_horizontal(IconButton::new(size24px::actions::AddCircle).label("Secondary").enable(&enable_state).context(WidgetContext::Secondary));
+        ui.add_horizontal(IconButton::new(size24px::actions::AddCircle).label("Wider").enable(&enable_state).expand_width(100).context(WidgetContext::Secondary));
+        //ui.add_horizontal(Checkbox::new(&mut check_state).enable(&enable_state));
+
         ui.new_row();
         if ui
             .add_centered(
                 Slider::new(&mut slider_val, -10..=10)
                     .label("Fancy Slider")
                     .step_size(5)
+                    .enable(&enable_state)
                     .smartstate(smartstates.nxt()),
             )
             .changed()
         {
             println!("Slider value: {}", slider_val);
         }
-
-        ui.add_horizontal(ToggleButton::new("Something", &mut state)
-            .expand_width(200)
-            .smartstate(smartstates.nxt()));
-        ui.add(ToggleSwitch::new(&mut state).smartstate(smartstates.nxt()));
 
         /*
         ui.right_panel_ui(200, true, |ui| {

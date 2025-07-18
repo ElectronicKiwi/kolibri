@@ -18,7 +18,7 @@ use embedded_graphics::geometry::{Point, Size};
 use embedded_graphics::image::Image;
 use embedded_graphics::pixelcolor::PixelColor;
 use embedded_graphics::prelude::*;
-use embedded_graphics::primitives::{PrimitiveStyleBuilder, Rectangle};
+use embedded_graphics::primitives::{PrimitiveStyle, PrimitiveStyleBuilder, Rectangle};
 use embedded_iconoir::prelude::*;
 use embedded_iconoir::{size12px, size18px, size24px, size32px};
 
@@ -74,6 +74,8 @@ use embedded_iconoir::{size12px, size18px, size24px, size32px};
 pub struct Checkbox<'a> {
     checked: &'a mut bool,
     smartstate: Container<'a, Smartstate>,
+    is_enabled: bool,  // when not enabled does not respond to interaction
+    is_modified: bool, // set when min_width or enabled is changed
 }
 
 impl<'a> Checkbox<'a> {
@@ -81,6 +83,8 @@ impl<'a> Checkbox<'a> {
         Checkbox {
             checked,
             smartstate: Container::empty(),
+            is_enabled: true,
+            is_modified: false,
         }
     }
 
@@ -95,6 +99,20 @@ impl<'a> Checkbox<'a> {
         self.smartstate.set(smartstate);
         self
     }
+
+    /// Enables or disables the widget - will not respond to interaction
+    ///
+    /// # Arguments
+    /// * `enabled` - if the widget should be enabled (true) or disabled(false)
+    /// 
+    /// # Returns
+    /// Self with is_enabled set
+    pub fn enable(mut self, enabled: &bool) -> Self {
+        self.is_modified = true;
+        self.is_enabled = *enabled;
+        self
+    }
+        
 }
 
 impl Checkbox<'_> {
@@ -143,39 +161,75 @@ impl<COL: PixelColor> Widget<COL> for Checkbox<'_> {
         // check interaction
 
         let mut changed = false;
-        if let Interaction::Release(_) = iresponse.interaction {
-            *self.checked = !*self.checked;
-            changed = true;
+        if self.is_enabled {
+            if let Interaction::Release(_) = iresponse.interaction {
+                *self.checked = !*self.checked;
+                changed = true;
+            }
         }
 
         // styles
 
         // smartstate
         let prevstate = self.smartstate.clone_inner();
-
-        let style = match iresponse.interaction {
-            Interaction::Click(_) | Interaction::Drag(_) | Interaction::Release(_) => {
-                self.smartstate.modify(|st| *st = Smartstate::state(1));
-                PrimitiveStyleBuilder::new()
-                    .fill_color(ui.style().primary_color)
-                    .stroke_color(ui.style().highlight_border_color)
-                    .stroke_width(ui.style().highlight_border_width)
+        let style: PrimitiveStyle<COL>;
+        let fg_color: COL;
+        if self.is_enabled {
+            style = match iresponse.interaction {
+                Interaction::Click(_) | Interaction::Drag(_) | Interaction::Release(_) => {
+                    if self.is_modified {
+                        self.smartstate.modify(|st| *st = Smartstate::state(1));
+                    } else {
+                        self.smartstate.modify(|st| *st = Smartstate::state(2));
+                    }
+                    fg_color = ui.style().normal_widget.active.foreground_color;
+                   
+                    PrimitiveStyleBuilder::new()
+                        .fill_color(ui.style().normal_widget.active.background_color)
+                        .stroke_color(ui.style().normal_widget.active.border_color)
+                        .stroke_width(ui.style().normal_widget.active.border_width)
+                        .build()
+                }
+                Interaction::Hover(_) => {
+                    if self.is_modified {
+                        self.smartstate.modify(|st| *st = Smartstate::state(3));
+                    } else {
+                        self.smartstate.modify(|st| *st = Smartstate::state(4));
+                    }
+                    fg_color = ui.style().normal_widget.hover.foreground_color;
+                    PrimitiveStyleBuilder::new()
+                        .fill_color(ui.style().normal_widget.hover.background_color)
+                        .stroke_color(ui.style().normal_widget.hover.border_color)
+                        .stroke_width(ui.style().normal_widget.hover.border_width)
+                        .build()
+                }
+                _ => {
+                    if self.is_modified {
+                        self.smartstate.modify(|st| *st = Smartstate::state(5));
+                    } else {
+                        self.smartstate.modify(|st| *st = Smartstate::state(6));
+                    }
+                    fg_color = ui.style().normal_widget.normal.foreground_color;
+                    PrimitiveStyleBuilder::new()
+                        .fill_color(ui.style().normal_widget.normal.background_color)
+                        .stroke_color(ui.style().normal_widget.normal.border_color)
+                        .stroke_width(ui.style().normal_widget.normal.border_width)
+                        .build()
+                }
+            };
+        } else {
+            if self.is_modified {
+                self.smartstate.modify(|st| *st = Smartstate::state(7));
+            } else {
+                self.smartstate.modify(|st| *st = Smartstate::state(8));
             }
-            Interaction::Hover(_) => {
-                self.smartstate.modify(|st| *st = Smartstate::state(2));
-                PrimitiveStyleBuilder::new()
-                    .fill_color(ui.style().highlight_item_background_color)
-                    .stroke_color(ui.style().highlight_border_color)
-                    .stroke_width(ui.style().highlight_border_width)
-            }
-            _ => {
-                self.smartstate.modify(|st| *st = Smartstate::state(3));
-                PrimitiveStyleBuilder::new()
-                    .fill_color(ui.style().item_background_color)
-                    .stroke_color(ui.style().border_color)
-                    .stroke_width(ui.style().border_width)
-            }
-        };
+                style =  PrimitiveStyleBuilder::new()
+                    .fill_color(ui.style().normal_widget.disabled.background_color)
+                    .stroke_color(ui.style().normal_widget.disabled.border_color)
+                    .stroke_width(ui.style().normal_widget.disabled.border_width)
+                    .build();
+                fg_color = ui.style().normal_widget.disabled.foreground_color;
+        }
 
         let redraw = !self.smartstate.eq_option(&prevstate) || changed;
 
@@ -192,32 +246,32 @@ impl<COL: PixelColor> Widget<COL> for Checkbox<'_> {
 
             let rect = Rectangle::new(iresponse.area.top_left, iresponse.area.size);
 
-            ui.draw(&rect.into_styled(style.build()))
+            ui.draw(&rect.into_styled(style))
                 .map_err(|_| GuiError::DrawError(Some("Couldn't draw Checkbox")))?;
 
             if *self.checked {
                 match size - padding.width {
                     0..=18 => self.draw_icon(
                         ui,
-                        size12px::actions::Check::new(ui.style().text_color),
+                        size12px::actions::Check::new(fg_color),
                         &iresponse.area,
                         Point::new(6, 6),
                     ),
                     19..=23 => self.draw_icon(
                         ui,
-                        size18px::actions::Check::new(ui.style().text_color),
+                        size18px::actions::Check::new(fg_color),
                         &iresponse.area,
                         Point::new(9, 9),
                     ),
                     24..=32 => self.draw_icon(
                         ui,
-                        size24px::actions::Check::new(ui.style().text_color),
+                        size24px::actions::Check::new(fg_color),
                         &iresponse.area,
                         Point::new(12, 12),
                     ),
                     _ => self.draw_icon(
                         ui,
-                        size32px::actions::Check::new(ui.style().text_color),
+                        size32px::actions::Check::new(fg_color),
                         &iresponse.area,
                         Point::new(16, 16),
                     ),
@@ -227,6 +281,10 @@ impl<COL: PixelColor> Widget<COL> for Checkbox<'_> {
             ui.finalize()?;
         }
 
-        Ok(Response::new(iresponse).set_changed(changed))
+        if self.is_enabled {
+            Ok(Response::new(iresponse).set_changed(changed))
+        } else {
+            Ok(Response::new(iresponse).set_changed(false))
+        }
     }
 }

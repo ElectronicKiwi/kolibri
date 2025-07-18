@@ -145,7 +145,7 @@ impl<COL: PixelColor> Widget<COL> for ToggleButton<'_> {
         // Determine size
         let text_bounds = text.bounding_box();
         let padding = ui.style().spacing.button_padding;
-        let border = ui.style().border_width;
+        let border = ui.style().normal_widget.normal.border_width;
         let height = ui.style().default_widget_height;
 
         let size = Size::new(
@@ -183,57 +183,79 @@ impl<COL: PixelColor> Widget<COL> for ToggleButton<'_> {
         // Determine styles based on state and interaction
         let prevstate = self.smartstate.clone_inner();
 
-        // Determine widget style
+        // Determine text color
+        text.character_style.text_color = match (*self.active, iresponse.interaction) {
+            (true, Interaction::Click(_) | Interaction::Drag(_) | Interaction::Release(_)) => {
+                Some(ui.style().normal_widget.active.foreground_color)
+            }
+            (true, Interaction::Hover(_)) => {
+                Some(ui.style().normal_widget.hover.foreground_color)
+            }
+            (true, _) => {
+                Some(ui.style().normal_widget.active.foreground_color)
+            }
+            (false, Interaction::Click(_) | Interaction::Drag(_) | Interaction::Release(_)) => {
+                Some(ui.style().normal_widget.hover.foreground_color)
+            }
+            (false, Interaction::Hover(_)) => {
+                Some(ui.style().normal_widget.hover.foreground_color)
+            }
+            (false, _) => {
+                Some(ui.style().normal_widget.normal.foreground_color)
+            }
+        };
+
         let style = match (*self.active, iresponse.interaction) {
             (true, Interaction::Click(_) | Interaction::Drag(_) | Interaction::Release(_)) => {
                 self.smartstate.modify(|st| *st = Smartstate::state(1));
                 PrimitiveStyleBuilder::new()
-                    .stroke_color(ui.style().highlight_border_color)
-                    .stroke_width(ui.style().highlight_border_width)
-                    .fill_color(ui.style().primary_color)
+                    .stroke_color(ui.style().normal_widget.active.border_color)
+                    .stroke_width(ui.style().normal_widget.active.border_width)
+                    .fill_color(ui.style().normal_widget.active.background_color)
                     .build()
             }
             (true, Interaction::Hover(_)) => {
                 self.smartstate.modify(|st| *st = Smartstate::state(2));
                 PrimitiveStyleBuilder::new()
-                    .stroke_color(ui.style().highlight_border_color)
-                    .stroke_width(ui.style().highlight_border_width)
-                    .fill_color(ui.style().primary_color)
+                    .stroke_color(ui.style().normal_widget.hover.border_color)
+                    .stroke_width(ui.style().normal_widget.hover.border_width)
+                    .fill_color(ui.style().normal_widget.hover.background_color)
                     .build()
             }
             (true, _) => {
                 self.smartstate.modify(|st| *st = Smartstate::state(3));
                 PrimitiveStyleBuilder::new()
-                    .stroke_color(ui.style().border_color)
-                    .stroke_width(ui.style().border_width)
-                    .fill_color(ui.style().primary_color)
+                    .stroke_color(ui.style().normal_widget.active.border_color)
+                    .stroke_width(ui.style().normal_widget.active.border_width)
+                    .fill_color(ui.style().normal_widget.active.background_color)
                     .build()
             }
             (false, Interaction::Click(_) | Interaction::Drag(_) | Interaction::Release(_)) => {
                 self.smartstate.modify(|st| *st = Smartstate::state(4));
                 PrimitiveStyleBuilder::new()
-                    .stroke_color(ui.style().highlight_border_color)
-                    .stroke_width(ui.style().highlight_border_width)
-                    .fill_color(ui.style().primary_color)
+                    .stroke_color(ui.style().normal_widget.hover.border_color)
+                    .stroke_width(ui.style().normal_widget.hover.border_width)
+                    .fill_color(ui.style().normal_widget.hover.background_color)
                     .build()
             }
             (false, Interaction::Hover(_)) => {
                 self.smartstate.modify(|st| *st = Smartstate::state(5));
                 PrimitiveStyleBuilder::new()
-                    .stroke_color(ui.style().highlight_border_color)
-                    .stroke_width(ui.style().highlight_border_width)
-                    .fill_color(ui.style().highlight_item_background_color)
+                    .stroke_color(ui.style().normal_widget.hover.border_color)
+                    .stroke_width(ui.style().normal_widget.hover.border_width)
+                    .fill_color(ui.style().normal_widget.hover.background_color)
                     .build()
             }
             (false, _) => {
                 self.smartstate.modify(|st| *st = Smartstate::state(6));
                 PrimitiveStyleBuilder::new()
-                    .stroke_color(ui.style().border_color)
-                    .stroke_width(ui.style().border_width)
-                    .fill_color(ui.style().item_background_color)
+                    .stroke_color(ui.style().normal_widget.normal.border_color)
+                    .stroke_width(ui.style().normal_widget.normal.border_width)
+                    .fill_color(ui.style().normal_widget.normal.background_color)
                     .build()
             }
         };
+
 
         let redraw = !self.smartstate.eq_option(&prevstate) || changed;
 

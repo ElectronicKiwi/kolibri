@@ -148,7 +148,7 @@ impl<COL: PixelColor, Ico: IconoirIcon> Widget<COL> for IconWidget<'_, Ico, COL>
     ) -> GuiResult<Response> {
         // find size && allocate space
         let icon = Ico::new(
-            self.icon_color.unwrap_or_else(|| ui.style().icon_color)
+            self.icon_color.unwrap_or_else(|| ui.style().text_color)
         );
         let iresponse = ui.allocate_space(icon.size())?;
 

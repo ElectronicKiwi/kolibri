@@ -711,7 +711,7 @@ pub fn draw_keyboard<
 
     ui.sub_ui(|ui| {
         if *shift {
-            ui.style_mut().item_background_color = ui.style().primary_color;
+            ui.style_mut().normal_widget.normal.background_color = ui.style().normal_widget.active.background_color;
         }
 
         if ui
