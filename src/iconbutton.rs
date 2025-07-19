@@ -60,7 +60,7 @@
 //! - Pressed/Active: Primary color background with highlighted border
 //!
 use crate::smartstate::{Container, Smartstate};
-use crate::style::{WidgetContext};
+use crate::style::{WidgetStyle};
 use crate::ui::{GuiResult, Interaction, Response, Ui, Widget};
 use core::cmp::max;
 use core::marker::PhantomData;
@@ -79,17 +79,17 @@ use embedded_iconoir::prelude::{IconoirIcon, IconoirNewIcon};
 /// [IconButton] combines the visual display of an icon with interactive button
 /// behavior. It changes appearance based on user interaction (normal, hover, pressed)
 /// and can optionally display a text label underneath the icon.
-pub struct IconButton<'a, ICON: IconoirIcon> {
+pub struct IconButton<'a, ICON: IconoirIcon, COL: PixelColor> {
     icon: PhantomData<ICON>,
     label: Option<&'a str>,
     smartstate: Container<'a, Smartstate>,
     min_width : u32,
     is_enabled: bool,  // when not enabled does not respond to interaction
     is_modified: bool, // set when min_width or enabled is changed
-    context: WidgetContext,
+    custom_style: Option<WidgetStyle<COL>>,
 }
 
-impl<'a, ICON: IconoirIcon> IconButton<'a, ICON> {
+impl<'a, ICON: IconoirIcon, COL: PixelColor> IconButton<'a, ICON, COL> {
     /// Creates a new [IconButton] from an [IconoirIcon] instance.
     ///
     /// The icon color from the icon instance will be ignored, as the widget
@@ -128,7 +128,7 @@ impl<'a, ICON: IconoirIcon> IconButton<'a, ICON> {
             min_width : 0u32,
             is_enabled: true,
             is_modified: false,
-            context: WidgetContext::Normal,
+            custom_style: None,
         }
     }
 
@@ -198,7 +198,7 @@ impl<'a, ICON: IconoirIcon> IconButton<'a, ICON> {
             min_width: 0_u32,
             is_enabled: true,
             is_modified: false,
-            context: WidgetContext::Normal,
+            custom_style: None,
         }
     }
 
@@ -262,21 +262,21 @@ impl<'a, ICON: IconoirIcon> IconButton<'a, ICON> {
         self
     }
     
-    /// Specifies the context for the widget to determine how it is styled
+    /// Specifies a custom widget style 
     ///
     /// # Arguments
-    /// * `context` - Context::Normal, Context::Primary, Context::Secondary
+    /// * `style` WidgetStyle
     /// 
     /// # Returns
-    /// Self with context set
-    pub fn context(mut self, context: WidgetContext) -> Self {
+    /// Self with custom_style set
+    pub fn with_widget_style(mut self, style: WidgetStyle<COL>) -> Self {
         self.is_modified = true;
-        self.context = context;
+        self.custom_style = Some(style);
         self
     }
 }
 
-impl<COL: PixelColor, ICON: IconoirIcon> Widget<COL> for IconButton<'_, ICON> {
+impl<COL: PixelColor, ICON: IconoirIcon> Widget<COL> for IconButton<'_, ICON, COL> {
     /// Draws the icon button within the UI.
     ///
     /// This method:
@@ -292,15 +292,13 @@ impl<COL: PixelColor, ICON: IconoirIcon> Widget<COL> for IconButton<'_, ICON> {
         ui: &mut Ui<DRAW, COL>,
     ) -> GuiResult<Response> {
         
-        let mut fg_color = ui.style().normal_widget.normal.foreground_color;
+        let widget_style = self.custom_style.unwrap_or_else(|| ui.style().widget);
+        let fg_color: COL;
         // get size
-        let mut icon = ICON::new(fg_color);
-
+        let mut icon = ICON::new(widget_style.normal.foreground_color);
         let padding = ui.style().spacing.button_padding;
-        let border = ui.style().normal_widget.normal.border_width;
-
+        let border = widget_style.normal.border_width;
         let mut min_height = icon.bounding_box().size.height + 2 * padding.height + 2 * border;
-
         let mut width = min_height;
 
         let font = ui.style().default_font;
@@ -309,7 +307,7 @@ impl<COL: PixelColor, ICON: IconoirIcon> Widget<COL> for IconButton<'_, ICON> {
             let mut text = Text::new(
                 label,
                 Point::new(0, 0),
-                MonoTextStyle::new(&font, fg_color),
+                MonoTextStyle::new(&font, widget_style.normal.foreground_color),
             );
             text.text_style.alignment = Alignment::Center;
             text.text_style.baseline = Baseline::Top;
@@ -381,11 +379,6 @@ impl<COL: PixelColor, ICON: IconoirIcon> Widget<COL> for IconButton<'_, ICON> {
         // styles and smartstate
         let prevstate = self.smartstate.clone_inner();
         let rect_style: PrimitiveStyle<COL>;
-        let context_style = match self.context {
-            WidgetContext::Normal => ui.style().normal_widget,
-            WidgetContext::Primary => ui.style().primary_widget.unwrap_or_else(|| ui.style().normal_widget),
-            WidgetContext::Secondary => ui.style().secondary_widget.unwrap_or_else(|| ui.style().normal_widget),
-        };
 
         if self.is_enabled {
             rect_style = match iresponse.interaction {
@@ -397,9 +390,9 @@ impl<COL: PixelColor, ICON: IconoirIcon> Widget<COL> for IconButton<'_, ICON> {
                     }
 
                     PrimitiveStyleBuilder::new()
-                        .stroke_color(context_style.normal.border_color)
-                        .stroke_width(context_style.normal.border_width)
-                        .fill_color(context_style.normal.background_color)
+                        .stroke_color(widget_style.normal.border_color)
+                        .stroke_width(widget_style.normal.border_width)
+                        .fill_color(widget_style.normal.background_color)
                         .build()
                 }
                 Interaction::Hover(_) => {
@@ -409,9 +402,9 @@ impl<COL: PixelColor, ICON: IconoirIcon> Widget<COL> for IconButton<'_, ICON> {
                         self.smartstate.modify(|st| *st = Smartstate::state(4));
                     }
                     PrimitiveStyleBuilder::new()
-                        .stroke_color(context_style.hover.border_color)
-                        .stroke_width(context_style.hover.border_width)
-                        .fill_color(context_style.hover.background_color)
+                        .stroke_color(widget_style.hover.border_color)
+                        .stroke_width(widget_style.hover.border_width)
+                        .fill_color(widget_style.hover.background_color)
                         .build()
                 }
 
@@ -423,22 +416,22 @@ impl<COL: PixelColor, ICON: IconoirIcon> Widget<COL> for IconButton<'_, ICON> {
                     }
 
                     PrimitiveStyleBuilder::new()
-                        .stroke_color(context_style.active.border_color)
-                        .stroke_width(context_style.active.border_width)
-                        .fill_color(context_style.active.background_color)
+                        .stroke_color(widget_style.active.border_color)
+                        .stroke_width(widget_style.active.border_width)
+                        .fill_color(widget_style.active.background_color)
                         .build()
                 }
             };
 
             match iresponse.interaction {
                 Interaction::None => {
-                    fg_color = context_style.normal.foreground_color;
+                    fg_color = widget_style.normal.foreground_color;
                 }
                 Interaction::Hover(_) => {
-                    fg_color = context_style.hover.foreground_color;
+                    fg_color = widget_style.hover.foreground_color;
                 }
                 _ => {
-                    fg_color = context_style.active.foreground_color;
+                    fg_color = widget_style.active.foreground_color;
                 }
             };
 
@@ -450,11 +443,11 @@ impl<COL: PixelColor, ICON: IconoirIcon> Widget<COL> for IconButton<'_, ICON> {
             }
 
             rect_style = PrimitiveStyleBuilder::new()
-                .stroke_color(context_style.disabled.border_color)
-                .stroke_width(context_style.disabled.border_width)
-                .fill_color(context_style.disabled.background_color)
+                .stroke_color(widget_style.disabled.border_color)
+                .stroke_width(widget_style.disabled.border_width)
+                .fill_color(widget_style.disabled.background_color)
                 .build();
-            fg_color = context_style.disabled.foreground_color;
+            fg_color = widget_style.disabled.foreground_color;
         }
         icon.set_color(fg_color);
         let icon_img = Image::new(&icon, center_offset);
@@ -492,7 +485,7 @@ impl<COL: PixelColor, ICON: IconoirIcon> Widget<COL> for IconButton<'_, ICON> {
 }
 
 // Implement common traits for IconButton
-impl<ICON: IconoirIcon> core::fmt::Debug for IconButton<'_, ICON> {
+impl<ICON: IconoirIcon, COL: PixelColor> core::fmt::Debug for IconButton<'_, ICON, COL> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         f.debug_struct("IconButton")
             .field("type", &core::any::type_name::<ICON>())

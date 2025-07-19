@@ -8,7 +8,6 @@ use embedded_graphics_simulator::{
     OutputSettingsBuilder, SimulatorDisplay, SimulatorEvent, Window,
 };
 use kolibri_embedded_gui::button::Button;
-use kolibri_embedded_gui::checkbox::Checkbox;
 use kolibri_embedded_gui::icon::IconWidget;
 use kolibri_embedded_gui::iconbutton::IconButton;
 use kolibri_embedded_gui::icons::size24px;
@@ -49,7 +48,6 @@ fn main() -> Result<(), core::convert::Infallible> {
     let mut slider_val = 0;
     let mut state = false;
     let mut enable_state;
-    let mut check_state = false;
     'outer: loop {
         let mut ui = Ui::new_fullscreen(&mut display, medsize_bootstrap_rgb565_style());
         // ui.draw_widget_bounds_debug(Rgb565::RED);
@@ -117,9 +115,9 @@ fn main() -> Result<(), core::convert::Infallible> {
             .smartstate(smartstates.nxt()));
         ui.add(IconWidget::<size24px::layout::CornerBottomLeft, Rgb565>::new_from_type().with_color(Rgb565::CSS_DARK_RED).with_background_color(Rgb565::CSS_DARK_GRAY));
         // ui.add(IconButton::new(size24px::actions::AddCircle));
-        ui.add_horizontal(IconButton::new(size24px::actions::AddCircle).label("Primary").enable(&enable_state).context(WidgetContext::Primary));
-        ui.add_horizontal(IconButton::new(size24px::actions::AddCircle).label("Secondary").enable(&enable_state).context(WidgetContext::Secondary));
-        ui.add_horizontal(IconButton::new(size24px::actions::AddCircle).label("Wider").enable(&enable_state).expand_width(100).context(WidgetContext::Secondary));
+        ui.add_horizontal(IconButton::new(size24px::actions::AddCircle).label("Primary").enable(&enable_state).with_widget_style(medsize_bootstrap_rgb565_primary_widget_style()));
+        ui.add_horizontal(IconButton::new(size24px::actions::AddCircle).label("Secondary").enable(&enable_state).with_widget_style(medsize_bootstrap_rgb565_secondary_widget_style()));
+        ui.add_horizontal(IconButton::new(size24px::actions::AddCircle).label("Wider").enable(&enable_state).expand_width(130).with_widget_style(medsize_bootstrap_rgb565_secondary_widget_style()));
         //ui.add_horizontal(Checkbox::new(&mut check_state).enable(&enable_state));
 
         ui.new_row();

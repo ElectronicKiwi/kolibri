@@ -59,8 +59,7 @@ use embedded_graphics::geometry::Point;
 use embedded_graphics::image::Image;
 use embedded_graphics::pixelcolor::PixelColor;
 use embedded_graphics::prelude::*;
-use embedded_graphics::primitives::{PrimitiveStyle, PrimitiveStyleBuilder, Rectangle};
-use embedded_graphics::text::DecorationColor;
+use embedded_graphics::primitives::{PrimitiveStyle, Rectangle};
 use embedded_iconoir::prelude::*;
 
 /// A widget for displaying an Iconoir icon.
@@ -148,7 +147,7 @@ impl<COL: PixelColor, Ico: IconoirIcon> Widget<COL> for IconWidget<'_, Ico, COL>
     ) -> GuiResult<Response> {
         // find size && allocate space
         let icon = Ico::new(
-            self.icon_color.unwrap_or_else(|| ui.style().text_color)
+            self.icon_color.unwrap_or_else(|| ui.style().widget.normal.foreground_color)
         );
         let iresponse = ui.allocate_space(icon.size())?;
 

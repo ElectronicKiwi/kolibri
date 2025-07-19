@@ -346,7 +346,7 @@ impl<COL: PixelColor> Widget<COL> for Label<'_, COL> {
 
         let mut char_style = MonoTextStyle::new(
                 &font,
-                self.text_color.unwrap_or_else(|| ui.style().text_color),
+                self.text_color.unwrap_or_else(|| ui.style().widget.normal.foreground_color),
         );
         char_style.underline_color = self.underline;
         char_style.strikethrough_color = self.strikethrough;
@@ -701,7 +701,7 @@ impl<COL: PixelColor> Widget<COL> for HashLabel<'_, COL> {
 
         let mut char_style = MonoTextStyle::new(
                 &font,
-                self.text_color.unwrap_or_else(|| ui.style().text_color),
+                self.text_color.unwrap_or_else(|| ui.style().widget.normal.foreground_color),
         );
         char_style.underline_color = self.underline;
         char_style.strikethrough_color = self.strikethrough;

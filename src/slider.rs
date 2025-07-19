@@ -233,7 +233,7 @@ impl<COL: PixelColor> Widget<COL> for Slider<'_> {
             let mut text = Text::new(
                 label,
                 Point::new(0, 0),
-                MonoTextStyle::new(&font, ui.style().text_color),
+                MonoTextStyle::new(&font, ui.style().widget.active.foreground_color),
             );
             text.text_style.alignment = Alignment::Center;
             text.text_style.baseline = Baseline::Top;
@@ -277,14 +277,14 @@ impl<COL: PixelColor> Widget<COL> for Slider<'_> {
         let old_slider_knob_style: PrimitiveStyle<COL>;
         if self.is_enabled {
             line_style = PrimitiveStyleBuilder::new()
-                .stroke_color(style.normal_widget.normal.border_color)
+                .stroke_color(style.widget.normal.border_color)
                 .stroke_width(slider_thickness)
-                .fill_color(style.normal_widget.normal.background_color)
+                .fill_color(style.widget.normal.background_color)
                 .build();
             slider_knob_style = PrimitiveStyleBuilder::new()
-                .stroke_color(style.normal_widget.normal.border_color)
-                .stroke_width(1.max(style.normal_widget.normal.border_width))
-                .fill_color(style.normal_widget.normal.background_color)
+                .stroke_color(style.widget.normal.border_color)
+                .stroke_width(1.max(style.widget.normal.border_width))
+                .fill_color(style.widget.normal.background_color)
                 .build();
             old_slider_knob_style = PrimitiveStyleBuilder::new()
                 .stroke_color(style.background_color)
@@ -293,14 +293,14 @@ impl<COL: PixelColor> Widget<COL> for Slider<'_> {
                 .build();
         } else {
             line_style = PrimitiveStyleBuilder::new()
-                .stroke_color(style.normal_widget.disabled.border_color)
+                .stroke_color(style.widget.disabled.border_color)
                 .stroke_width(slider_thickness)
-                .fill_color(style.normal_widget.disabled.background_color)
+                .fill_color(style.widget.disabled.background_color)
                 .build();
             slider_knob_style = PrimitiveStyleBuilder::new()
-                .stroke_color(style.normal_widget.disabled.border_color)
-                .stroke_width(1.max(style.normal_widget.disabled.border_width))
-                .fill_color(style.normal_widget.disabled.background_color)
+                .stroke_color(style.widget.disabled.border_color)
+                .stroke_width(1.max(style.widget.disabled.border_width))
+                .fill_color(style.widget.disabled.background_color)
                 .build();
             /*
             old_slider_knob_style = PrimitiveStyleBuilder::new()
@@ -323,9 +323,9 @@ impl<COL: PixelColor> Widget<COL> for Slider<'_> {
                 );
             text.translate_mut(center_offset);
             if self.is_enabled {
-                text.character_style.text_color = Some(ui.style().normal_widget.normal.foreground_color);
+                text.character_style.text_color = Some(ui.style().widget.normal.foreground_color);
             } else {
-                text.character_style.text_color = Some(ui.style().normal_widget.disabled.foreground_color);
+                text.character_style.text_color = Some(ui.style().widget.disabled.foreground_color);
             }
         }
 
@@ -339,9 +339,10 @@ impl<COL: PixelColor> Widget<COL> for Slider<'_> {
         // find user input
         // TODO
         let old_val = *self.value;
-        let mut slider_knob_pos : i16 = *self.value;
-        let mut old_slider_knob_pos: i16 =*self.value;
-        let mut slider_knob: Circle = Circle::with_center(
+        let slider_knob_pos : i16; // = *self.value;
+        let old_slider_knob_pos: i16; // =*self.value;
+        let slider_knob: Circle; 
+        /* = Circle::with_center(
                 Point::new(
                     iresponse.area.top_left.x + old_slider_knob_pos as i32,
                     iresponse.area.top_left.y
@@ -350,7 +351,8 @@ impl<COL: PixelColor> Widget<COL> for Slider<'_> {
                 ),
                 slider_knob_diameter + 4,
             );
-        let mut old_slider_knob: Circle = slider_knob;
+        */ 
+        let old_slider_knob: Circle; // = slider_knob;
         if self.is_enabled {
             match iresponse.interaction {
                 Interaction::Click(point) | Interaction::Drag(point) => {
@@ -420,21 +422,21 @@ impl<COL: PixelColor> Widget<COL> for Slider<'_> {
         if self.is_enabled {
             let interact_val: u16 = match iresponse.interaction {
                 Interaction::Click(_) | Interaction::Drag(_) => {
-                    slider_knob_style.fill_color = Some(style.normal_widget.active.background_color);
+                    slider_knob_style.fill_color = Some(style.widget.active.background_color);
                     2
                 }
                 Interaction::Hover(_) => {
-                    slider_knob_style.fill_color = Some(style.normal_widget.hover.background_color);
+                    slider_knob_style.fill_color = Some(style.widget.hover.background_color);
                     1
                 }
                 _ => {
-                    slider_knob_style.fill_color = Some(style.normal_widget.normal.background_color);
+                    slider_knob_style.fill_color = Some(style.widget.normal.background_color);
                     0
                 }
             };
             state_val = (*self.value as u16) as u32 | ((interact_val as u32) << 16);
         } else {
-            slider_knob_style.fill_color = Some(style.normal_widget.disabled.background_color);
+            slider_knob_style.fill_color = Some(style.widget.disabled.background_color);
             state_val = *self.value as u32;
         }
 

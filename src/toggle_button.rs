@@ -10,6 +10,7 @@
 //! with the framework's [Smartstate] system for efficient rendering.
 //!
 use crate::smartstate::{Container, Smartstate};
+use crate::style::WidgetStyle;
 use crate::ui::{GuiError, GuiResult, Interaction, Response, Ui, Widget};
 use core::cmp::max;
 use embedded_graphics::draw_target::DrawTarget;
@@ -51,14 +52,15 @@ use embedded_graphics::text::{Alignment, Baseline, Text};
 ///     ui.add(ToggleButton::new("Toggle Me", &mut state));
 /// }
 /// ```
-pub struct ToggleButton<'a> {
+pub struct ToggleButton<'a, COL:PixelColor> {
     label: &'a str,
     active: &'a mut bool,
     smartstate: Container<'a, Smartstate>,
     min_width : u32,
+    custom_style: Option<WidgetStyle<COL>>,
 }
 
-impl<'a> ToggleButton<'a> {
+impl<'a, COL:PixelColor> ToggleButton<'a, COL> {
     /// Creates a new [ToggleButton] with the given label and active state.
     ///
     /// The `label` parameter is the text to display on the button, and the `active`
@@ -97,12 +99,13 @@ impl<'a> ToggleButton<'a> {
     ///    }
     ///
     /// }
-    pub fn new(label: &'a str, active: &'a mut bool) -> ToggleButton<'a> {
+    pub fn new(label: &'a str, active: &'a mut bool) -> ToggleButton<'a, COL> {
         ToggleButton {
             label,
             active,
             smartstate: Container::empty(),
             min_width : 0u32,
+            custom_style: None,
         }
     }
 
@@ -129,23 +132,24 @@ impl<'a> ToggleButton<'a> {
     }
 }
 
-impl<COL: PixelColor> Widget<COL> for ToggleButton<'_> {
+impl<COL: PixelColor> Widget<COL> for ToggleButton<'_, COL> {
     fn draw<DRAW: DrawTarget<Color = COL>>(
         &mut self,
         ui: &mut Ui<DRAW, COL>,
     ) -> GuiResult<Response> {
         // Prepare text
         let font = ui.style().default_font;
+        let widget_style = self.custom_style.unwrap_or_else(|| ui.style().widget);
         let mut text = Text::new(
             self.label,
             Point::zero(),
-            MonoTextStyle::new(&font, ui.style().text_color),
+            MonoTextStyle::new(&font, widget_style.normal.foreground_color),
         );
 
         // Determine size
         let text_bounds = text.bounding_box();
         let padding = ui.style().spacing.button_padding;
-        let border = ui.style().normal_widget.normal.border_width;
+        let border = widget_style.normal.border_width;
         let height = ui.style().default_widget_height;
 
         let size = Size::new(
@@ -186,22 +190,22 @@ impl<COL: PixelColor> Widget<COL> for ToggleButton<'_> {
         // Determine text color
         text.character_style.text_color = match (*self.active, iresponse.interaction) {
             (true, Interaction::Click(_) | Interaction::Drag(_) | Interaction::Release(_)) => {
-                Some(ui.style().normal_widget.active.foreground_color)
+                Some(widget_style.active.foreground_color)
             }
             (true, Interaction::Hover(_)) => {
-                Some(ui.style().normal_widget.hover.foreground_color)
+                Some(widget_style.hover.foreground_color)
             }
             (true, _) => {
-                Some(ui.style().normal_widget.active.foreground_color)
+                Some(widget_style.active.foreground_color)
             }
             (false, Interaction::Click(_) | Interaction::Drag(_) | Interaction::Release(_)) => {
-                Some(ui.style().normal_widget.hover.foreground_color)
+                Some(widget_style.hover.foreground_color)
             }
             (false, Interaction::Hover(_)) => {
-                Some(ui.style().normal_widget.hover.foreground_color)
+                Some(widget_style.hover.foreground_color)
             }
             (false, _) => {
-                Some(ui.style().normal_widget.normal.foreground_color)
+                Some(widget_style.normal.foreground_color)
             }
         };
 
@@ -209,49 +213,49 @@ impl<COL: PixelColor> Widget<COL> for ToggleButton<'_> {
             (true, Interaction::Click(_) | Interaction::Drag(_) | Interaction::Release(_)) => {
                 self.smartstate.modify(|st| *st = Smartstate::state(1));
                 PrimitiveStyleBuilder::new()
-                    .stroke_color(ui.style().normal_widget.active.border_color)
-                    .stroke_width(ui.style().normal_widget.active.border_width)
-                    .fill_color(ui.style().normal_widget.active.background_color)
+                    .stroke_color(widget_style.active.border_color)
+                    .stroke_width(widget_style.active.border_width)
+                    .fill_color(widget_style.active.background_color)
                     .build()
             }
             (true, Interaction::Hover(_)) => {
                 self.smartstate.modify(|st| *st = Smartstate::state(2));
                 PrimitiveStyleBuilder::new()
-                    .stroke_color(ui.style().normal_widget.hover.border_color)
-                    .stroke_width(ui.style().normal_widget.hover.border_width)
-                    .fill_color(ui.style().normal_widget.hover.background_color)
+                    .stroke_color(widget_style.hover.border_color)
+                    .stroke_width(widget_style.hover.border_width)
+                    .fill_color(widget_style.hover.background_color)
                     .build()
             }
             (true, _) => {
                 self.smartstate.modify(|st| *st = Smartstate::state(3));
                 PrimitiveStyleBuilder::new()
-                    .stroke_color(ui.style().normal_widget.active.border_color)
-                    .stroke_width(ui.style().normal_widget.active.border_width)
-                    .fill_color(ui.style().normal_widget.active.background_color)
+                    .stroke_color(widget_style.active.border_color)
+                    .stroke_width(widget_style.active.border_width)
+                    .fill_color(widget_style.active.background_color)
                     .build()
             }
             (false, Interaction::Click(_) | Interaction::Drag(_) | Interaction::Release(_)) => {
                 self.smartstate.modify(|st| *st = Smartstate::state(4));
                 PrimitiveStyleBuilder::new()
-                    .stroke_color(ui.style().normal_widget.hover.border_color)
-                    .stroke_width(ui.style().normal_widget.hover.border_width)
-                    .fill_color(ui.style().normal_widget.hover.background_color)
+                    .stroke_color(widget_style.hover.border_color)
+                    .stroke_width(widget_style.hover.border_width)
+                    .fill_color(widget_style.hover.background_color)
                     .build()
             }
             (false, Interaction::Hover(_)) => {
                 self.smartstate.modify(|st| *st = Smartstate::state(5));
                 PrimitiveStyleBuilder::new()
-                    .stroke_color(ui.style().normal_widget.hover.border_color)
-                    .stroke_width(ui.style().normal_widget.hover.border_width)
-                    .fill_color(ui.style().normal_widget.hover.background_color)
+                    .stroke_color(widget_style.hover.border_color)
+                    .stroke_width(widget_style.hover.border_width)
+                    .fill_color(widget_style.hover.background_color)
                     .build()
             }
             (false, _) => {
                 self.smartstate.modify(|st| *st = Smartstate::state(6));
                 PrimitiveStyleBuilder::new()
-                    .stroke_color(ui.style().normal_widget.normal.border_color)
-                    .stroke_width(ui.style().normal_widget.normal.border_width)
-                    .fill_color(ui.style().normal_widget.normal.background_color)
+                    .stroke_color(widget_style.normal.border_color)
+                    .stroke_width(widget_style.normal.border_width)
+                    .fill_color(widget_style.normal.background_color)
                     .build()
             }
         };

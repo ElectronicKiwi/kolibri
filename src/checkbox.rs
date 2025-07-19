@@ -182,12 +182,12 @@ impl<COL: PixelColor> Widget<COL> for Checkbox<'_> {
                     } else {
                         self.smartstate.modify(|st| *st = Smartstate::state(2));
                     }
-                    fg_color = ui.style().normal_widget.active.foreground_color;
+                    fg_color = ui.style().widget.active.foreground_color;
                    
                     PrimitiveStyleBuilder::new()
-                        .fill_color(ui.style().normal_widget.active.background_color)
-                        .stroke_color(ui.style().normal_widget.active.border_color)
-                        .stroke_width(ui.style().normal_widget.active.border_width)
+                        .fill_color(ui.style().widget.active.background_color)
+                        .stroke_color(ui.style().widget.active.border_color)
+                        .stroke_width(ui.style().widget.active.border_width)
                         .build()
                 }
                 Interaction::Hover(_) => {
@@ -196,11 +196,11 @@ impl<COL: PixelColor> Widget<COL> for Checkbox<'_> {
                     } else {
                         self.smartstate.modify(|st| *st = Smartstate::state(4));
                     }
-                    fg_color = ui.style().normal_widget.hover.foreground_color;
+                    fg_color = ui.style().widget.hover.foreground_color;
                     PrimitiveStyleBuilder::new()
-                        .fill_color(ui.style().normal_widget.hover.background_color)
-                        .stroke_color(ui.style().normal_widget.hover.border_color)
-                        .stroke_width(ui.style().normal_widget.hover.border_width)
+                        .fill_color(ui.style().widget.hover.background_color)
+                        .stroke_color(ui.style().widget.hover.border_color)
+                        .stroke_width(ui.style().widget.hover.border_width)
                         .build()
                 }
                 _ => {
@@ -209,11 +209,11 @@ impl<COL: PixelColor> Widget<COL> for Checkbox<'_> {
                     } else {
                         self.smartstate.modify(|st| *st = Smartstate::state(6));
                     }
-                    fg_color = ui.style().normal_widget.normal.foreground_color;
+                    fg_color = ui.style().widget.normal.foreground_color;
                     PrimitiveStyleBuilder::new()
-                        .fill_color(ui.style().normal_widget.normal.background_color)
-                        .stroke_color(ui.style().normal_widget.normal.border_color)
-                        .stroke_width(ui.style().normal_widget.normal.border_width)
+                        .fill_color(ui.style().widget.normal.background_color)
+                        .stroke_color(ui.style().widget.normal.border_color)
+                        .stroke_width(ui.style().widget.normal.border_width)
                         .build()
                 }
             };
@@ -224,11 +224,11 @@ impl<COL: PixelColor> Widget<COL> for Checkbox<'_> {
                 self.smartstate.modify(|st| *st = Smartstate::state(8));
             }
                 style =  PrimitiveStyleBuilder::new()
-                    .fill_color(ui.style().normal_widget.disabled.background_color)
-                    .stroke_color(ui.style().normal_widget.disabled.border_color)
-                    .stroke_width(ui.style().normal_widget.disabled.border_width)
+                    .fill_color(ui.style().widget.disabled.background_color)
+                    .stroke_color(ui.style().widget.disabled.border_color)
+                    .stroke_width(ui.style().widget.disabled.border_width)
                     .build();
-                fg_color = ui.style().normal_widget.disabled.foreground_color;
+                fg_color = ui.style().widget.disabled.foreground_color;
         }
 
         let redraw = !self.smartstate.eq_option(&prevstate) || changed;

@@ -3,7 +3,7 @@
 //! See [Button] for more info.
 
 use crate::smartstate::{Container, Smartstate};
-use crate::style::{WidgetContext, WidgetContextStyle};
+use crate::style::{ WidgetStyle};
 use crate::ui::{GuiResult, Interaction, Response, Ui, Widget};
 use core::cmp::max;
 use core::ops::Add;
@@ -89,16 +89,16 @@ use embedded_graphics::text::{Alignment, Baseline, Text};
 ///     - foreground color used for text and icons
 /// - default font
 /// - default padding and spacing
-pub struct Button<'a> {
+pub struct Button<'a, COL: PixelColor> {
     label: &'a str,
     smartstate: Container<'a, Smartstate>,
     min_width : u32, 
     is_enabled: bool,  // when not enabled does not respond to interaction
     is_modified: bool, // set when min_width or enabled is changed
-    context: WidgetContext,
+    custom_style: Option<WidgetStyle<COL>>,
 }
 
-impl<'a> Button<'a> {
+impl<'a, COL: PixelColor> Button<'a, COL> {
     /// Creates a new button with the given text label.
     ///
     /// # Arguments
@@ -106,14 +106,14 @@ impl<'a> Button<'a> {
     ///
     /// # Returns
     /// A new Button instance with the specified label and no smartstate
-    pub fn new(label: &'a str) -> Button<'a> {
+    pub fn new(label: &'a str) -> Button<'a, COL> {
         Button {
             label,
             smartstate: Container::empty(),
             min_width: 0_u32,
             is_enabled: true,
             is_modified: false,
-            context: WidgetContext::Normal,
+            custom_style: None,
         }
     }
 
@@ -165,14 +165,14 @@ impl<'a> Button<'a> {
     /// 
     /// # Returns
     /// Self with context set
-    pub fn context(mut self, context: WidgetContext) -> Self {
+    pub fn with_widget_style(mut self, style: WidgetStyle<COL>) -> Self {
         self.is_modified = true;
-        self.context = context;
+        self.custom_style = Some(style);
         self
     }   
 }
 
-impl<COL: PixelColor> Widget<COL> for Button<'_> {
+impl<COL: PixelColor> Widget<COL> for Button<'_, COL> {
     fn draw<DRAW: DrawTarget<Color = COL>>(
         &mut self,
         ui: &mut Ui<DRAW, COL>,
@@ -180,16 +180,18 @@ impl<COL: PixelColor> Widget<COL> for Button<'_> {
         // get size
         let font = ui.style().default_font;
 
+        let widget_style = self.custom_style.unwrap_or_else(|| ui.style().widget);
+
         let mut text = Text::new(
             self.label,
             Point::new(0, 0),
-            MonoTextStyle::new(&font, ui.style().text_color),
+            MonoTextStyle::new(&font, widget_style.normal.foreground_color),
         );
 
         let height = ui.style().default_widget_height;
         let size = text.bounding_box();
         let padding = ui.style().spacing.button_padding;
-        let border = ui.style().normal_widget.normal.border_width;
+        let border = widget_style.normal.border_width;
 
         // calculate minumum dimensions to contain contents
         let mut desired_size = Size::new(
@@ -224,12 +226,6 @@ impl<COL: PixelColor> Widget<COL> for Button<'_> {
         let prevstate = self.smartstate.clone_inner();
         let rect_style: embedded_graphics::primitives::PrimitiveStyle<COL>;
 
-        let context_style = match self.context {
-            WidgetContext::Normal => ui.style().normal_widget,
-            WidgetContext::Primary => ui.style().primary_widget.unwrap_or_else(|| ui.style().normal_widget),
-            WidgetContext::Secondary => ui.style().secondary_widget.unwrap_or_else(|| ui.style().normal_widget),
-        };
-
         if self.is_enabled {
             rect_style = match iresponse.interaction {
                 Interaction::None => {
@@ -240,9 +236,9 @@ impl<COL: PixelColor> Widget<COL> for Button<'_> {
                     }
 
                     PrimitiveStyleBuilder::new()
-                        .stroke_color(context_style.normal.border_color)
-                        .stroke_width(context_style.normal.border_width)
-                        .fill_color(context_style.normal.background_color)
+                        .stroke_color(widget_style.normal.border_color)
+                        .stroke_width(widget_style.normal.border_width)
+                        .fill_color(widget_style.normal.background_color)
                         .build()
                 }
                 Interaction::Hover(_) => {
@@ -253,9 +249,9 @@ impl<COL: PixelColor> Widget<COL> for Button<'_> {
                     }
 
                     PrimitiveStyleBuilder::new()
-                        .stroke_color(context_style.hover.border_color)
-                        .stroke_width(context_style.hover.border_width)
-                        .fill_color(context_style.hover.background_color)
+                        .stroke_color(widget_style.hover.border_color)
+                        .stroke_width(widget_style.hover.border_width)
+                        .fill_color(widget_style.hover.background_color)
                         .build()
                 }
 
@@ -267,22 +263,22 @@ impl<COL: PixelColor> Widget<COL> for Button<'_> {
                     }
 
                     PrimitiveStyleBuilder::new()
-                        .stroke_color(context_style.active.border_color)
-                        .stroke_width(context_style.active.border_width)
-                        .fill_color(context_style.active.background_color)
+                        .stroke_color(widget_style.active.border_color)
+                        .stroke_width(widget_style.active.border_width)
+                        .fill_color(widget_style.active.background_color)
                         .build()
                 }
             };
             text.character_style.text_color = match iresponse.interaction {
                 Interaction::None => {
-                    Some(context_style.normal.foreground_color)
+                    Some(widget_style.normal.foreground_color)
                 }
                 Interaction::Hover(_) => {
-                    Some(context_style.hover.foreground_color)
+                    Some(widget_style.hover.foreground_color)
                 }
             
                 _ => {
-                    Some(context_style.active.foreground_color)
+                    Some(widget_style.active.foreground_color)
                 }
             };
 
@@ -294,11 +290,11 @@ impl<COL: PixelColor> Widget<COL> for Button<'_> {
             }
 
             rect_style = PrimitiveStyleBuilder::new()
-                .stroke_color(context_style.disabled.border_color)
-                .stroke_width(context_style.disabled.border_width)
-                .fill_color(context_style.disabled.background_color)
+                .stroke_color(widget_style.disabled.border_color)
+                .stroke_width(widget_style.disabled.border_width)
+                .fill_color(widget_style.disabled.background_color)
                 .build();
-            text.character_style.text_color = Some(context_style.disabled.foreground_color);
+            text.character_style.text_color = Some(widget_style.disabled.foreground_color);
         };
 
         self.is_modified = false;

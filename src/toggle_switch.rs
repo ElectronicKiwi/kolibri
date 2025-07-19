@@ -179,21 +179,21 @@ impl<COL: PixelColor> Widget<COL> for ToggleSwitch<'_> {
 
         // Colors for active and inactive states
         let switch_color = if *self.active {
-            ui.style().normal_widget.active.background_color
+            ui.style().widget.active.background_color
         } else {
-            ui.style().normal_widget.normal.background_color
+            ui.style().widget.normal.background_color
         };
 
         let knob_color = match iresponse.interaction {
-            Interaction::Click(_) | Interaction::Drag(_) => ui.style().normal_widget.active.background_color,
-            Interaction::Hover(_) => ui.style().normal_widget.hover.background_color,
-            _ => ui.style().normal_widget.normal.background_color,
+            Interaction::Click(_) | Interaction::Drag(_) => ui.style().widget.active.background_color,
+            Interaction::Hover(_) => ui.style().widget.hover.background_color,
+            _ => ui.style().widget.normal.background_color,
         };
 
         // Determine border color based on interaction
         let border_color = match iresponse.interaction {
-            Interaction::Hover(_) => ui.style().normal_widget.hover.border_color,
-            _ => ui.style().normal_widget.normal.border_color,
+            Interaction::Hover(_) => ui.style().widget.hover.border_color,
+            _ => ui.style().widget.normal.border_color,
         };
 
         // Inside the draw method, replace the current smartstate handling with:
@@ -231,25 +231,25 @@ impl<COL: PixelColor> Widget<COL> for ToggleSwitch<'_> {
             let switch_style = PrimitiveStyleBuilder::new()
                 .fill_color(switch_color)
                 .stroke_color(border_color)
-                .stroke_width(ui.style().normal_widget.normal.border_width)
+                .stroke_width(ui.style().widget.normal.border_width)
                 .build();
 
             ui.draw(&switch_rect.into_styled(switch_style))
                 .map_err(|_| GuiError::DrawError(Some("Couldn't draw ToggleSwitch background")))?;
 
             // Calculate knob position
-            let knob_radius = (self.height / 2) - ui.style().normal_widget.normal.border_width;
+            let knob_radius = (self.height / 2) - ui.style().widget.normal.border_width;
             let knob_x = if *self.active {
                 // Positioned on the right
                 iresponse.area.top_left.x + padding.width as i32 + self.width as i32
                     - knob_radius as i32
-                    - ui.style().normal_widget.normal.border_width as i32
+                    - ui.style().widget.normal.border_width as i32
             } else {
                 // Positioned on the left
                 iresponse.area.top_left.x
                     + padding.width as i32
                     + knob_radius as i32
-                    + ui.style().normal_widget.normal.border_width as i32
+                    + ui.style().widget.normal.border_width as i32
             };
 
             let knob_center = Point::new(
